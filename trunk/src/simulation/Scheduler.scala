@@ -40,7 +40,7 @@ case class Scheduler () {
   /** Runs the simulation
    *  @author mepcotterell@gmail.com
    */
-  def simulate {
+  def simulate () {
     
     // a flag that marks if the scheduler is simulating
     var simulating = true

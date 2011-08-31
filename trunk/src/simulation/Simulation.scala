@@ -25,7 +25,7 @@ trait Simulation {
   /** Random distribution
    *  @author mepcotterell@gmail.coms
    */
-  def Rand (p: Double) = r.nextInt((1.0 / p).toInt)
+  def Rand (p: Double) = 1 + r.nextInt((1.0 / p).toInt - 1)
   
   /** Runs the simulation
    *  @author mepcotterell@gmail.com
