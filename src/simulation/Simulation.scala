@@ -1,0 +1,51 @@
+package simulation
+
+/** Provides useful variables and functions for simulations.
+ *  @author mepcotterell@gmail.com
+ */
+trait Simulation {
+
+  println("Setting up the environment for a Simulation")
+  
+  // the start time of the simulation
+  var tStart: Int = 0
+  
+  // the end time of the simulation
+  var tStop: Int = 100
+  
+  // The arrival rate
+  var λ: Double = 1.0
+  
+  // The service rate
+  var μ: Double = 1.0
+  
+  // The debug mode flag
+  private var debugModeEnabled = false
+  
+  // the random number generator
+  private val r = new scala.util.Random
+  
+  /** Toggle debug mode
+   *  @author mepcotterell@gmail.com
+   */
+  def debugMode {
+    debugModeEnabled = true
+  }
+  
+  /** Random distribution
+   *  @author mepcotterell@gmail.coms
+   */
+  def Rand (p: Double) = r.nextInt((1.0 / p).toInt)
+  
+  /** Runs the simulation
+   *  @author mepcotterell@gmail.com
+   */
+  def simulate: Unit
+  
+  def debugMessage (message: String) {
+    if (debugModeEnabled) {
+      println ("[%s] %s)".format(System.currentTimeMillis(), message))
+    }
+  }
+  
+} // trait Simulation
