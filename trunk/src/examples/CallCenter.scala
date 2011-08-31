@@ -46,6 +46,16 @@ object CallCenter extends App {
     // Indicates whether or not the Operator is idle
     var idle = true
     
+    def startService {
+      println("\tOperator is starting service...")
+      this.idle = false
+    }
+    
+    def stopService {
+      println("\tOperator is stopping service...")
+      this.idle = true
+    }
+    
   } // case class Operator
   
   val operator = Operator()
@@ -61,12 +71,20 @@ object CallCenter extends App {
       nCalls += 1
       
       if (operator.idle) {
+      
+        // schedule a hangup
         schedule(HangUp(person), Rand(1.0 / μ))
-        operator.idle = false
+        
+        // tell the operator to stop service
+        operator.startService
+      
       } // if
       
       if (clock <= tStop) {
+        
+        // schedule a new call
         schedule(MakeCall(Person()), Rand(1.0 / λ))
+        
       } // if
       
     } // def occur
@@ -78,18 +96,20 @@ object CallCenter extends App {
    */
   case class HangUp (person: Person) extends Event (person) {
     def occur {
-            
-      if (operator.idle) {
-        operator.idle = true
-      } // if
+      
+      // tell the operator to stop service
+      operator.stopService
       
     } // def occur
   } // case class HangUp
   
   // schedule the first event
-  sched.schedule(MakeCall(Person()), Rand(1.0 / μ))
+  sched.schedule(MakeCall(Person()), tStart + Rand(1.0 / λ))
   
   // run the simulation
   sched.simulate
+  
+  // print out some information
+  println("The total number of calls was %s".format(nCalls))
   
 } // object CallCenter
