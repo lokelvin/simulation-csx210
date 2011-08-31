@@ -5,33 +5,19 @@ import simulation._
 /** An example simulation of a Call Center using event scheduling.
  *  @author mepcotterell@gmail.com
  */
-object CallCenter extends App {
+object CallCenter extends App with EventSchedulingSimulation {
 
-  // the start time of the simulation
-  val tStart = 0;
+  // Assign values to the Simulation variables
+  tStart = 0
+  tStop  = 100
+  λ      = 9.0
+  μ      = 2.0
   
-  // the end time of the simulation
-  val tStop = 100;
-  
-  // The arrival rate
-  val λ = 9.0
-  
-  // The service rate
-  val μ = 2.0
-  
-  // the random number generator
-  val r = new scala.util.Random
+  // toggle debug mode
+  debugMode
   
   // the total number of calls
   var nCalls: Int = 0
-  
-  // the event scheduler
-  implicit val sched = Scheduler()
-  
-  /** Random distribution
-   *  @author mepcotterell@gmail.coms
-   */
-  def Rand (p: Double) = r.nextInt((1.0 / p).toInt)
   
   /** Represents a person in the simulation
    *  @author mepcotterell@gmail.com
@@ -45,16 +31,6 @@ object CallCenter extends App {
     
     // Indicates whether or not the Operator is idle
     var idle = true
-    
-    def startService {
-      println("\tOperator is starting service...")
-      this.idle = false
-    }
-    
-    def stopService {
-      println("\tOperator is stopping service...")
-      this.idle = true
-    }
     
   } // case class Operator
   
@@ -76,7 +52,7 @@ object CallCenter extends App {
         schedule(HangUp(person), Rand(1.0 / μ))
         
         // tell the operator to stop service
-        operator.startService
+        operator.idle = false
       
       } // if
       
@@ -98,18 +74,19 @@ object CallCenter extends App {
     def occur {
       
       // tell the operator to stop service
-      operator.stopService
+      operator.idle = true
       
     } // def occur
   } // case class HangUp
   
   // schedule the first event
-  sched.schedule(MakeCall(Person()), tStart + Rand(1.0 / λ))
+  schedule(MakeCall(Person()), tStart + Rand(1.0 / λ))
   
   // run the simulation
-  sched.simulate
+  simulate
   
   // print out some information
+  println
   println("The total number of calls was %s".format(nCalls))
   
 } // object CallCenter
