@@ -1,4 +1,5 @@
 package examples
+package event
 
 import simulation._
 
@@ -12,9 +13,6 @@ object CallCenter extends App with EventSchedulingSimulation {
   tStop  = 100
   λ      = 9.0
   μ      = 2.0
-  
-  // toggle debug mode
-  debugMode
   
   // the total number of calls
   var nCalls: Int = 0
