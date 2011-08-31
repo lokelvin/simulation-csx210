@@ -5,7 +5,7 @@ package simulation
  */
 trait EventSchedulingSimulation extends Simulation {
 
-  println("Setting up the environment for an EventSchedulingSimulation...")
+  println("Setting up the environment for an event scheduling simulation [trait EventSchedulingSimulation]")
   
   // implicitly available event scheduler
   implicit val scheduler = Scheduler()
