@@ -19,18 +19,8 @@ trait Simulation {
   // The service rate
   var μ: Double = 1.0
   
-  // The debug mode flag
-  private var debugModeEnabled = false
-  
   // the random number generator
   private val r = new scala.util.Random
-  
-  /** Toggle debug mode
-   *  @author mepcotterell@gmail.com
-   */
-  def debugMode {
-    debugModeEnabled = true
-  }
   
   /** Random distribution
    *  @author mepcotterell@gmail.coms
@@ -41,11 +31,5 @@ trait Simulation {
    *  @author mepcotterell@gmail.com
    */
   def simulate: Unit
-  
-  def debugMessage (message: String) {
-    if (debugModeEnabled) {
-      println ("[%s] %s)".format(System.currentTimeMillis(), message))
-    }
-  }
-  
+
 } // trait Simulation
