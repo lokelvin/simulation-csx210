@@ -9,12 +9,12 @@ object Bank extends App with EventSchedulingSimulation {
 
   // Assign values to the Simulation variables
   tStart = 0
-  tStop  = 100
+  tStop  = 60
   λ      = 10.0
   μ      = 4.0
   
   // total number of tellers in the bank
-  val N = 1
+  val N = 2
   
   // the number of customers in the bank
   var L = 0
@@ -24,6 +24,9 @@ object Bank extends App with EventSchedulingSimulation {
   
   // the service times
   var serviceTimes = scala.collection.mutable.ListBuffer.empty[Double]
+  
+  // the wait times
+  var waitTimes = scala.collection.mutable.ListBuffer.empty[Double]
   
   /** Represents a customer in the bank
    *  @author mepcotterell@gmail.com
@@ -49,8 +52,11 @@ object Bank extends App with EventSchedulingSimulation {
         // the service time
         val delay = Rand(1.0 / μ)
         
-        // add to the set of service times
+        // add to the list of service times
         serviceTimes += delay
+        
+        // add to the list of wait times
+        waitTimes += 0
         
         // schedule a departure
         schedule(Departure(customer), delay)
@@ -75,8 +81,17 @@ object Bank extends App with EventSchedulingSimulation {
       
       if (L > N) {
       
+        // the service time
+        val delay = Rand(1.0 / μ)
+        
+        // add to the list of service times
+        serviceTimes += delay
+        
+        // add to the list of wait times
+        waitTimes += clock - timeScheduled
+          
         // schedule a departure
-        schedule(Departure(customer), Rand(1.0 / μ))
+        schedule(Departure(customer), delay)
       
       } // if
       
@@ -95,9 +110,13 @@ object Bank extends App with EventSchedulingSimulation {
   // compute the average service time
   val avgServiceTime = serviceTimes.reduceLeft(_+_) / serviceTimes.size
   
+  // compute the average wait time
+  val avgWaitTime = waitTimes.reduceLeft(_+_) / waitTimes.size
+  
   // print out some information
   println
   println("The total number of customers serviced was %s".format(nServiced))
-  println("The total average service time was %s".format(avgServiceTime))
+  println("The average service time was %s".format(avgServiceTime))
+  println("The average wait time was %s".format(avgWaitTime))
 
 } // object Bank

@@ -7,6 +7,9 @@ package simulation
  */
 abstract class Event (entity: Entity) (implicit scheduler: Scheduler) extends Ordered[Event] {
 
+  // the time when the event was originally scheduled
+  var timeScheduled: Int = 0
+    
   // the event time
   var time: Int = 0
   
