@@ -1,0 +1,15 @@
+Project 2: Event Scheduling Simulation Engine
+
+For this project we had to design and implement a Simulation Engine based on 
+the event scheduling approach we learned in class. The assignment was divided 
+into two parts as follows:
+
+Design an implement a Simulation Engine that is general purpose and should work
+for any relevant simulation problem. Write three applications using the engine's
+API. Application descriptions were provided by the course textbook 
+(Discrete-Event System Simulation: 5/e by Banks, Carson, Nelson and Nicol, 2010). 
+
+These applications were:
+ - Able-Baker Call Center: Example 3.1: Page 69
+ - Grocery Store Checkout Counter: Example 3.3: Page 77
+ - Dump Trucks for Hauling Coal: Example 3.5: Page 81
