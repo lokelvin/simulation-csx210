@@ -64,7 +64,7 @@ case class Scheduler () {
       // let the event occur
       event.occur
       
-    } // while
+    } // whiled
     
   } // def simulate
   
