@@ -58,6 +58,7 @@ case class Scheduler () {
       
       // print a nice message
       println("t = %s".format(clock))
+      println("%d in queue".format(futureEvents.length))
       println("\tHandling %s".format(event))
       
       // let the event occur

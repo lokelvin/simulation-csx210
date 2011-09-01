@@ -18,6 +18,9 @@ trait Simulation {
   
   // The service rate
   var μ: Double = 1.0
+
+  //The second service rate
+  var μ2: Double = 1.0
   
   // the random number generator
   private val r = new scala.util.Random

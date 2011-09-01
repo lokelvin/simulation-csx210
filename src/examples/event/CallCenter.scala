@@ -20,12 +20,12 @@ object CallCenter extends App with EventSchedulingSimulation {
   /** Represents a person in the simulation
    *  @author mepcotterell@gmail.com
    */
-  case class Person extends Entity
+  case class Person() extends Entity
   
   /** Represents the operator in the Call Center
    *  @author mepcotterell@gmail.com
    */
-  case class Operator extends Entity {
+  case class Operator() extends Entity {
     
     // Indicates whether or not the Operator is idle
     var idle = true
@@ -86,5 +86,6 @@ object CallCenter extends App with EventSchedulingSimulation {
   // print out some information
   println
   println("The total number of calls was %s".format(nCalls))
+
   
 } // object CallCenter
