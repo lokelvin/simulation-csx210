@@ -20,6 +20,9 @@ case class Scheduler () {
    */
   def schedule (event: Event, delay: Int) {
     
+    // set the time the event was scheduled
+    event.timeScheduled = clock
+      
     // set the event time
     event.time = clock + delay
     
