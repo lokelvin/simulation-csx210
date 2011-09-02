@@ -9,10 +9,10 @@ object CheckoutCounter extends App with EventSchedulingSimulation {
  // Assign values to the Simulation variables
   tStart = 0
   tStop  = 60
-  //λ      = 9.0
-  λDist = Map[Int,Double](1->0.25,2->0.65,3->0.85,4->1.0)
+  λ      = 8.0
+  //λDist = Map[Int,Double](1->0.25,2->0.65,3->0.85,4->1.0)
   //μ      = 8.0
-  μDist = Map[Int,Double](2->0.30,3->0.58,4->0.83,5->1.0)
+  μDist = Map[Int,Double](1->0.10,2->0.30,3->0.60,4->0.85,5->0.95,6->1.0)
 
   // the total number of calls
   var nCustomers: Int = 0
@@ -57,7 +57,7 @@ object CheckoutCounter extends App with EventSchedulingSimulation {
       if (clock <= tStop) {
 
         // schedule a new call
-        schedule(Arrival(Person()), DiscreteRand(λDist))
+        schedule(Arrival(Person()), Rand(1/λ))
 
       } // if
 
@@ -78,13 +78,13 @@ object CheckoutCounter extends App with EventSchedulingSimulation {
   } // case class Departure
 
   // schedule the first event
-  schedule(Arrival(Person()), tStart + DiscreteRand(λDist).toInt)
+  schedule(Arrival(Person()), tStart + Rand(1/λ).toInt)
 
   // run the simulation
   simulate
 
   // print out some information
-  println
+  println()
   println("The total number of customers was %s".format(nCustomers))
 
 
