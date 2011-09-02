@@ -10,9 +10,11 @@ object CallCenter extends App with EventSchedulingSimulation {
   // Assign values to the Simulation variables
   tStart = 0
   tStop  = 100
-  λ      = 9.0
-  μ      = 8.0
-  μ2     = 2.0
+  //λ      = 9.0
+  λDist = Map[Int,Double](1->0.25,2->0.65,3->0.85,4->1.0)
+  //μ      = 2.0
+  μDist = Map[Int,Double](2->0.30,3->0.58,4->0.83,5->1.0)
+  μ2Dist = Map[Int,Double](3->0.35,4->0.60,5->0.80,6->1.0)
   
   // the total number of calls
   var nCalls: Int = 0
@@ -48,7 +50,7 @@ object CallCenter extends App with EventSchedulingSimulation {
       if (able.idle) {
       
         // schedule a hangup
-        schedule(AbleEndSrv(person), Rand(1.0 / μ))
+        schedule(AbleEndSrv(person), DiscreteRand(μDist))
         
         // tell able to stop service
         able.idle = false
@@ -56,7 +58,7 @@ object CallCenter extends App with EventSchedulingSimulation {
       } // if
       else if (baker.idle) {
         //schedule a hangup
-        schedule(BakerEndSrv(person), Rand(1.0 / μ2))
+        schedule(BakerEndSrv(person), DiscreteRand(μ2Dist))
         //tell baker to stop service
         baker.idle = false;
       }
@@ -64,7 +66,7 @@ object CallCenter extends App with EventSchedulingSimulation {
       if (clock <= tStop) {
         
         // schedule a new call
-        schedule(ArrivalEvent(Person()), Rand(1.0 / λ))
+        schedule(ArrivalEvent(Person()), DiscreteRand(λDist))
         
       } // if
       
@@ -95,8 +97,8 @@ object CallCenter extends App with EventSchedulingSimulation {
   }//case class BakerEndSrv
   
   // schedule the first event
-  schedule(ArrivalEvent(Person()), tStart + Rand(1.0 / λ))
-  
+  schedule(ArrivalEvent(Person()), tStart + DiscreteRand(λDist).toInt)
+
   // run the simulation
   simulate
   
