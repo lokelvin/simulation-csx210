@@ -97,13 +97,14 @@ object CallCenter extends App with EventSchedulingSimulation {
   }//case class BakerEndSrv
   
   // schedule the first event
+  //why do we need to cast it?
   schedule(ArrivalEvent(Person()), tStart + DiscreteRand(λDist).toInt)
 
   // run the simulation
   simulate
   
   // print out some information
-  println
+  println()
   println("The total number of calls was %s".format(nCalls))
 
   
