@@ -51,14 +51,13 @@ case class Scheduler () {
     while (simulating && !futureEvents.isEmpty) {
       
       // the next event 
-      val event = futureEvents.dequeue
+      val event = futureEvents.dequeue()
       
       // update the "System" clock
       clock = event.time
       
       // print a nice message
       println("t = %s".format(clock))
-      println("%d in queue".format(futureEvents.length))
       println("\tHandling %s".format(event))
       
       // let the event occur
@@ -99,5 +98,5 @@ object SchedulerTestApp extends App {
   sched.schedule(Arrival(Person("Beth")), r.nextInt(9))
 
   
-  sched.simulate
+  sched.simulate()
 }
