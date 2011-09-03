@@ -25,6 +25,8 @@ abstract class Event (entity: Entity) (implicit scheduler: Scheduler) extends Or
    *  @author mepcotterell@gmail.com
    */
   def occur: Unit
+
+  var delay = 0
   
   /** Schedules a future event using the implicitly associated Scheduler
    *  @author mepcotterell@gmail.com
