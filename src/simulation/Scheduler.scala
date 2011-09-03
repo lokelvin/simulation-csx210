@@ -12,6 +12,9 @@ case class Scheduler () {
   
   // The future events list
   val futureEvents = PriorityQueue.empty[Event]
+
+  //are we simulating?
+  var simulating = true
   
   /** Schedules a future event
    *  @author mepcotterell@gmail.com
@@ -25,6 +28,9 @@ case class Scheduler () {
       
     // set the event time
     event.time = clock + delay
+
+    //set the delay time
+    event.delay = delay
     
     // add the event to the list
     futureEvents.enqueue(event)
@@ -46,7 +52,7 @@ case class Scheduler () {
   def simulate () {
     
     // a flag that marks if the scheduler is simulating
-    var simulating = true
+    simulating = true
     
     while (simulating && !futureEvents.isEmpty) {
       
