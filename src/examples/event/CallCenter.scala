@@ -20,7 +20,7 @@ object CallCenter extends App with EventSchedulingSimulation {
   /** Represents a person in the simulation
    *  @author mepcotterell@gmail.com
    */
-  case class Person() extends Entity
+  case class Person(personNum : Int) extends Entity
   
   /** Represents the operator in the Call Center
    *  @author mepcotterell@gmail.com
@@ -57,7 +57,7 @@ object CallCenter extends App with EventSchedulingSimulation {
       if (clock <= tStop) {
         
         // schedule a new call
-        schedule(MakeCall(Person()), Rand(1.0 / λ))
+        schedule(MakeCall(Person(nCalls)), Rand(1.0 / λ))
         
       } // if
       
@@ -70,6 +70,8 @@ object CallCenter extends App with EventSchedulingSimulation {
    */
   case class HangUp (person: Person) extends Event (person) {
     def occur {
+
+      println("\t\tPerson %d is hanging up".format(person.personNum))
       
       // tell the operator to stop service
       operator.idle = true
@@ -78,13 +80,13 @@ object CallCenter extends App with EventSchedulingSimulation {
   } // case class HangUp
   
   // schedule the first event
-  schedule(MakeCall(Person()), tStart + Rand(1.0 / λ))
+  schedule(MakeCall(Person(nCalls)), tStart + Rand(1.0 / λ))
   
   // run the simulation
   simulate
   
   // print out some information
-  println
+  println()
   println("The total number of calls was %s".format(nCalls))
 
   
