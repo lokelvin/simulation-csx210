@@ -86,7 +86,8 @@ object CheckoutCounter extends App with EventSchedulingSimulation {
 
       // increase the total number of calls
       nCustomers += 1
-
+      //set the time the person arrive
+      person.timeArrived = clock
       if (cashier.idle) {
 
         // schedule a hangup
