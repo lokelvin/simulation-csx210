@@ -1,6 +1,7 @@
 package project2
 
 import simulation._
+import simulation.event._
 import scala.collection.mutable.Queue
 
 /** @see Grocery Store Checkout Counter: Example 3.3: Page 77

@@ -1,4 +1,5 @@
 package simulation
+package event
 
 /** Provides useful variables and functions for event scheduling simulation
  *  @author mepcotterell@gmail.com

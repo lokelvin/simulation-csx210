@@ -1,4 +1,5 @@
 package simulation
+package event
 
 import scala.collection.mutable.PriorityQueue
 

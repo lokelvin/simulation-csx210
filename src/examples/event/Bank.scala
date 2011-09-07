@@ -1,6 +1,7 @@
 package examples.event
 
 import simulation._
+import simulation.event._
 
 /** An example simulation of a Bank using event scheduling.
  *  @author mepcotterell@gmail.com

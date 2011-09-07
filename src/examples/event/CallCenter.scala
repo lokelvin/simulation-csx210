@@ -2,6 +2,7 @@ package examples
 package event
 
 import simulation._
+import simulation.event._
 
 /** An example simulation of a Call Center using event scheduling.
  *  @author mepcotterell@gmail.com
