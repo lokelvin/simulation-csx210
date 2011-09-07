@@ -1,4 +1,5 @@
 package simulation
+package event
 
 /** Event represents a future event in a simulation.
  *  @author mepcotterell@gmail.com
