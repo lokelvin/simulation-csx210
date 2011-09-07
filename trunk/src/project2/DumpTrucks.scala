@@ -56,6 +56,7 @@ object DumpTrucks extends App with EventSchedulingSimulation {
   val DT6 = DumpTruck(6)
   
   /** A truck arrives at the loader queue.
+   *  @author mepcotterell@gmail.com
    */
   case class Arrival (truck: DumpTruck) extends Event (truck) {
     def occur {
@@ -84,6 +85,7 @@ object DumpTrucks extends App with EventSchedulingSimulation {
   } // case class Arrival
   
   /** A truck ends loading.
+   *  @author mepcotterell@gmail.com
    */
   case class DepartureFromLoadingStation (truck: DumpTruck) extends Event (truck) {
     def occur {
@@ -132,6 +134,7 @@ object DumpTrucks extends App with EventSchedulingSimulation {
   } // case class DepartureFromLoadingQ
   
   /** A truck ends weighing.
+   *  @author mepcotterell@gmail.com
    */
   case class DepartureFromWeighingStation (truck: DumpTruck) extends Event (truck) {
     def occur {
