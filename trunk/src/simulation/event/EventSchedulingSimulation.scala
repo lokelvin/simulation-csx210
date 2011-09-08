@@ -26,7 +26,7 @@ trait EventSchedulingSimulation extends Simulation {
   /** Runs the simulation
    *  @author mepcotterell@gmail.com
    */
-  def simulate = scheduler.simulate
+  def simulate (implicit trace: () => String = () => "") = scheduler.simulate(trace)
   
   
 } // trait EventScheduling
