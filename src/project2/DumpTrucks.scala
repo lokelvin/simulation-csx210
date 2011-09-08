@@ -13,6 +13,12 @@ object DumpTrucks extends App with EventSchedulingSimulation {
   tStart = 0
   tStop  = 60
   
+  // The number of loading docks
+  val N_LOAD = 1
+  
+  // The number of weigh scales/stations
+  val N_WEIGH = 2
+  
   // The loading queue
   var loaderQ = Queue.empty[DumpTruck]
   
@@ -36,7 +42,6 @@ object DumpTrucks extends App with EventSchedulingSimulation {
   
   // The total busy time of the scale from time tStart
   var BS = 0.0
-  
   
   // The service distributions
   val μLoadingDist 	= Map[Int, Double](  5 -> 0.30,  10 -> 0.80,  15 -> 1.00)
@@ -65,7 +70,7 @@ object DumpTrucks extends App with EventSchedulingSimulation {
      
         // if there is a free space on the loading deck then schedule a 
         // departure from the loading station
-	    if (L < 2) {
+	    if (L < N_LOAD) {
 	      
 	      val delay = DiscreteRand(μLoadingDist).toInt
 	      schedule(DepartureFromLoadingStation(truck), delay)
@@ -97,7 +102,7 @@ object DumpTrucks extends App with EventSchedulingSimulation {
 	    
 	    // if there is a free space on the scale then schedule a 
         // departure from the weighing station
-	    if (W < 1) {
+	    if (W < N_WEIGH) {
 	       
 	      val delay = DiscreteRand(μTravelDist).toInt
 	      schedule(DepartureFromWeighingStation(truck), delay)
@@ -190,12 +195,15 @@ object DumpTrucks extends App with EventSchedulingSimulation {
   
   // print out some information
   println
+  println("The number of loading docks was %s".format(N_LOAD))
+  println("The number of scales / weigh stations was %s".format(N_WEIGH))
+  println
   println("The number of trucks in the loading queue at the end of the simulation was %s".format(LQ))
   println("The number of trucks being loaded at the end of the simulation was %s".format(L))
   println("The number of trucks in the weighing queue at the end of the simulation was %s".format(WQ))
   println("The number of trucks on the scale at the end of the simulation was %s".format(W))
   println
-  println("The average loader utilization was %s".format((BL / L) / clock))
-  println("The average scale utilization was %s".format((BS / W) / clock))
+  println("The average loading dock utilization was %s".format((BL / N_LOAD) / clock))
+  println("The average scale / weigh station utilization was %s".format((BS / N_WEIGH) / clock))
   
 }
