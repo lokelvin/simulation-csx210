@@ -205,6 +205,7 @@ object DumpTrucks extends App with EventSchedulingSimulation {
   println("The number of trucks being loaded at the end of the simulation was %s".format(L))
   println("The number of trucks in the weighing queue at the end of the simulation was %s".format(WQ))
   println("The number of trucks on the scale at the end of the simulation was %s".format(W))
+  println("The number of trucks traveling at the end of the simulation was %s".format(6 - LQ - L - WQ - W))
   println
   println("The average loading dock utilization was %s".format((BL / N_LOAD) / clock))
   println("The average scale / weigh station utilization was %s".format((BS / N_WEIGH) / clock))
