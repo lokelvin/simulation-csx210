@@ -20,7 +20,7 @@ object CallCenter extends App with EventSchedulingSimulation {
   var nCalls: Int = 0
 
   //the waiting queue
-  var waitQ : Queue[Person] = new Queue[Person]
+  var waitQueue : Queue[Person] = new Queue[Person]
 
   //the highest waiting time
   var waitMax = 0
@@ -30,6 +30,18 @@ object CallCenter extends App with EventSchedulingSimulation {
 
   //the max length of the waitQ
   var qMax = 0
+
+  //the number of callers waiting
+  var LQ = 0
+
+  //the number of callers being serviced
+  var L = 0
+
+  //Able's total busy time
+  var BA = 0
+
+  //Baker's total busy time
+  var BB = 0
 
   
   /** Represents a person in the simulation
@@ -65,29 +77,39 @@ object CallCenter extends App with EventSchedulingSimulation {
       person.timeArrived = clock
       if (able.idle) {
         //put them in the waiting queue
-        if (waitQ.length > 0){
-          enQ(waitQ,person)
+        if (waitQueue.length > 0){
+          enQ(waitQueue,person)
         }
         // or schedule a hangup
-        else
-          schedule(AbleEndSrv(person), DiscreteRand(μDist))
+        else {
+          val delay =  DiscreteRand(μDist)
+          schedule(AbleEndSrv(person), delay)
+          L = L + 1
+          BA = BA + delay.toInt
+        }
         
         // tell able to stop service
         able.idle = false
       
       } // if
       else if (baker.idle) {
-        if (waitQ.length > 0)
-          enQ(waitQ,person)
+        if (waitQueue.length > 0) {
+          enQ(waitQueue,person)
+        }
         // schedule a hangup
-        else
-          schedule(BakerEndSrv(person), DiscreteRand(μ2Dist))
+        else   {
+          val delay =  DiscreteRand(μ2Dist)
+          schedule(BakerEndSrv(person), delay)
+          L = L + 1
+          BB = BB + delay.toInt
+        }
 
         //tell baker to stop service
         baker.idle = false;
       }
       else  {
-          enQ(waitQ, person)
+          enQ(waitQueue, person)
+
       }
 
 
@@ -109,6 +131,7 @@ object CallCenter extends App with EventSchedulingSimulation {
      waitQ.enqueue(person)
      if (waitQ.length > qMax)
         qMax = waitQ.length
+     LQ = waitQueue.length
   }
 
   /**
@@ -122,7 +145,8 @@ object CallCenter extends App with EventSchedulingSimulation {
     if (dQ.timeWaited > waitMax)
       waitMax = dQ.timeWaited
     waitTotal += dQ.timeWaited
-    println("\tPerson %d waited %d time units".format(dQ.personNum,dQ.timeWaited))
+    LQ = LQ - 1
+    //println("\tPerson %d waited %d time units".format(dQ.personNum,dQ.timeWaited))
     dQ
   }
 
@@ -133,12 +157,15 @@ object CallCenter extends App with EventSchedulingSimulation {
   case class AbleEndSrv (person: Person) extends Event (person) {
     def occur {
       //print a nice message
-      println("\t\tAble is dropping Person %d".format(person.personNum))
+      //println("\t\tAble is dropping Person %d".format(person.personNum))
       // tell the operator to stop service
       able.idle = true
-
-      if (waitQ.length > 0) {
-        schedule(AbleEndSrv(dQ(waitQ)),DiscreteRand(μDist))
+      L = L - 1
+      if (waitQueue.length > 0) {
+        val delay = DiscreteRand(μDist)
+        schedule(AbleEndSrv(dQ(waitQueue)),delay)
+        BA = BA + delay.toInt
+        L = L + 1
         able.idle = false;
       }
     } // def occur
@@ -150,20 +177,23 @@ object CallCenter extends App with EventSchedulingSimulation {
   case class BakerEndSrv (person: Person) extends Event (person) {
       def occur {
         //print a nice message
-        println("\t\tBaker is dropping Person %d".format(person.personNum))
+        //println("\t\tBaker is dropping Person %d".format(person.personNum))
         //tell the operator to stop service
         baker.idle = true;
-        if (waitQ.length > 0) {
-
-          schedule(BakerEndSrv(dQ(waitQ)),DiscreteRand(μDist))
-
+        L = L - 1
+        if (waitQueue.length > 0) {
+          val dealy = DiscreteRand(μDist)
+          schedule(BakerEndSrv(dQ(waitQueue)),delay)
+          BB = BB + delay
+          L = L + 1
           baker.idle = false
         }
       } //def occur
   }//case class BakerEndSrv
-  
+
+  implicit def trace () = "LQ = %s, L = %s, BA = %s, BB = %s".format(LQ, L, BA, BB)
+
   // schedule the first event
-  //why do we need to cast it?
   schedule(ArrivalEvent(Person(nCalls+1)), tStart + DiscreteRand(λDist).toInt)
 
   // run the simulation
@@ -173,6 +203,10 @@ object CallCenter extends App with EventSchedulingSimulation {
   println()
   println("The total number of calls was %s".format(nCalls))
   println("The max time any caller waited was %s units of time".format(waitMax))
+  println()
+  println("Able's utilization was %3.2f".format(BA.toDouble/clock))
+  println("Baker's utilization was %3.2f".format(BB.toDouble/clock))
+  println()
   println("The average waiting time for all callers was %3.2f units of time".format(waitTotal.toDouble/nCalls))
   println("The max # of callers in the wait queue was %d".format(qMax))
 
