@@ -37,7 +37,9 @@ case class Scheduler () {
     futureEvents.enqueue(event)
     
     // print a nice message
+    Console.BLUE
     println("%10s Scheduled %s for t = %s".format(clock, event, event.time))
+    Console.RESET
 
   } // def schedule
   
@@ -50,7 +52,7 @@ case class Scheduler () {
   /** Runs the simulation
    *  @author mepcotterell@gmail.com
    */
-  def simulate () {
+  def simulate (implicit trace: () => String = () => "") {
     
     // a flag that marks if the scheduler is simulating
     simulating = true
@@ -64,7 +66,12 @@ case class Scheduler () {
       clock = event.time
       
       // print a nice message
+      Console.GREEN
       println("%10s Handling %s".format(clock, event))
+      if (!trace().isEmpty()) {
+    	  println("%10s Trace: %s".format(clock, trace()))
+      }
+      Console.RESET
       
       // let the event occur
       event.occur

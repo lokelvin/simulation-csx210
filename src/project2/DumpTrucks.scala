@@ -191,6 +191,8 @@ object DumpTrucks extends App with EventSchedulingSimulation {
   schedule(DepartureFromLoadingStation(DT2), DiscreteRand(μLoadingDist).toInt)
   schedule(DepartureFromLoadingStation(DT3), DiscreteRand(μLoadingDist).toInt)
 
+  implicit def trace () = "LQ = %s, L = %s, WQ = %s, W = %s, BL = %s, BS = %s".format(LQ, L, WQ, W, BL, BS)
+  
   // run the simulation
   simulate
   
