@@ -37,7 +37,7 @@ case class Scheduler () {
     futureEvents.enqueue(event)
     
     // print a nice message
-    println("\tScheduled %s for t = %s".format(event, event.time))
+    println("%10s Scheduled %s for t = %s".format(clock, event, event.time))
 
   } // def schedule
   
@@ -64,8 +64,7 @@ case class Scheduler () {
       clock = event.time
       
       // print a nice message
-      println("t = %s".format(clock))
-      println("\tHandling %s".format(event))
+      println("%10s Handling %s".format(clock, event))
       
       // let the event occur
       event.occur
