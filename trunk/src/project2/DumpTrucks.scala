@@ -2,6 +2,7 @@ package project2
 
 import simulation._
 import simulation.event._
+import simulation.stat._
 import scala.collection.mutable.Queue
 
 /** @see Dump Trucks for Hauling Coal: Example 3.5: Page 81
@@ -14,10 +15,10 @@ object DumpTrucks extends App with EventSchedulingSimulation {
   tStop  = 60
   
   // The number of loading docks
-  val N_LOAD = 1
+  val N_LOAD = 2
   
   // The number of weigh scales/stations
-  val N_WEIGH = 2
+  val N_WEIGH = 1
   
   // The loading queue
   var loaderQ = Queue.empty[DumpTruck]
@@ -28,14 +29,26 @@ object DumpTrucks extends App with EventSchedulingSimulation {
   // The number of trucks in the loader queue at time t
   def LQ = loaderQ.size
   
+  // Keep track of the LQ statistic
+  val LQ_STAT = TimeStatistic()
+  
   // The number of trucks (0, 1, or 2) being loaded at time t
   var L = 0
+  
+  // Keep track of the L statistic
+  val L_STAT = TimeStatistic()
   
   // The number of trucks in the weigh queue
   def WQ = weighQ.size
   
+  // Keep track of the WQ statistic
+  val WQ_STAT = TimeStatistic()
+  
   // The number of trucks (0 or 1) being weighed
   var W = 0
+  
+  // Keep track of the W statistic
+  val W_STAT = TimeStatistic()
   
   // The total busy time of both loaders from time tStart
   var BL = 0.0
@@ -75,7 +88,9 @@ object DumpTrucks extends App with EventSchedulingSimulation {
 	      
 	      val delay = DiscreteRand(μLoadingDist).toInt
 	      schedule(DepartureFromLoadingStation(truck), delay)
+	      
 	      L  = L + 1
+	      
 	      BL = BL + delay
 	      
 	    // else go into the loading queue
@@ -86,6 +101,12 @@ object DumpTrucks extends App with EventSchedulingSimulation {
 	    } // if
     
       } // if
+      
+      // update stats
+      L_STAT(L, clock)
+      LQ_STAT(LQ, clock)
+      W_STAT(W, clock)
+      WQ_STAT(WQ, clock)
       
     } // def occur
   } // case class Arrival
@@ -107,7 +128,9 @@ object DumpTrucks extends App with EventSchedulingSimulation {
 	       
 	      val delay = DiscreteRand(μTravelDist).toInt
 	      schedule(DepartureFromWeighingStation(truck), delay)
+	      
 	      W  = W + 1
+	      
 	      BS = BS + delay
 	    
 	    // else go into the loading queue
@@ -123,6 +146,7 @@ object DumpTrucks extends App with EventSchedulingSimulation {
 	    if (LQ > 0) {
 	        
 	        val otherTruck = loaderQ.dequeue
+	        
 	        val delay = DiscreteRand(μLoadingDist).toInt
 	        schedule(DepartureFromLoadingStation(otherTruck), delay)
 	        
@@ -135,6 +159,12 @@ object DumpTrucks extends App with EventSchedulingSimulation {
 	      } // if
 	      
       } // if
+      
+      // update stats
+      L_STAT(L, clock)
+      LQ_STAT(LQ, clock)
+      W_STAT(W, clock)
+      WQ_STAT(WQ, clock)
       
     } // def occur
   } // case class DepartureFromLoadingQ
@@ -159,6 +189,7 @@ object DumpTrucks extends App with EventSchedulingSimulation {
 	    if (WQ > 0) {
 	      
 	      val otherTruck = weighQ.dequeue
+	      
 	      val delay = DiscreteRand(μTravelDist).toInt
 	      schedule(DepartureFromWeighingStation(otherTruck), delay)
 	      
@@ -171,6 +202,12 @@ object DumpTrucks extends App with EventSchedulingSimulation {
 	    } // 
 	      
       } // if
+      
+      // update stats
+      L_STAT(L, clock)
+      LQ_STAT(LQ, clock)
+      W_STAT(W, clock)
+      WQ_STAT(WQ, clock)
       
     } // def occur
   } // case class DepartureFromWeighingQ
@@ -197,6 +234,10 @@ object DumpTrucks extends App with EventSchedulingSimulation {
   simulate
   
   // print out some information
+  println
+  println("LQ = %s, L = %s".format(LQ_STAT.mean, L_STAT.mean))
+  println("WQ = %s, W = %s".format(WQ_STAT.mean, W_STAT.mean))
+  
   println
   println("The number of loading docks was %s".format(N_LOAD))
   println("The number of scales / weigh stations was %s".format(N_WEIGH))
