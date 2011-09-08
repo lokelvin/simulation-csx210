@@ -49,6 +49,7 @@ object DumpTrucks extends App with EventSchedulingSimulation {
   val μTravelDist 	= Map[Int, Double]( 40 -> 0.40,  60 -> 0.70,  80 -> 0.90, 100 -> 1.00)
   
   /** Dump Truck Entity
+   *  @author mepcotterell@gmail.com
    */
   case class DumpTruck (id: Int) extends Entity
   
