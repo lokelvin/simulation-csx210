@@ -2,6 +2,7 @@ package project2
 
 import simulation._
 import simulation.event._
+import simulation.stat._
 import scala.collection.mutable.Queue
 
 /** An example simulation of a Call Center using event scheduling.
