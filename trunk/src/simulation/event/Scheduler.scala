@@ -38,7 +38,7 @@ case class Scheduler () {
     
     // print a nice message
     Console.BLUE
-    println("%10s Scheduled %s for t = %s".format(clock, event, event.time))
+    println("%10s %10s Scheduled %s for t = %s".format(clock, "[action]", event, event.time))
     Console.RESET
 
   } // def schedule
@@ -67,9 +67,9 @@ case class Scheduler () {
       
       // print a nice message
       Console.GREEN
-      println("%10s Handling %s".format(clock, event))
+      println("%10s %10s Handling %s".format(clock, "[action]", event))
       if (!trace().isEmpty()) {
-    	  println("%10s Trace: %s".format(clock, trace()))
+    	  println("%10s %10s %s".format(clock, "[trace]", trace()))
       }
       Console.RESET
       
