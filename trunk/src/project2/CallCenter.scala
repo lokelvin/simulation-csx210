@@ -182,9 +182,9 @@ object CallCenter extends App with EventSchedulingSimulation {
         baker.idle = true;
         L = L - 1
         if (waitQueue.length > 0) {
-          val dealy = DiscreteRand(μDist)
+          val delay = DiscreteRand(μDist)
           schedule(BakerEndSrv(dQ(waitQueue)),delay)
-          BB = BB + delay
+          BB = BB + delay.toInt
           L = L + 1
           baker.idle = false
         }
