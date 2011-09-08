@@ -30,8 +30,6 @@ trait Simulation {
 
   //The second service Distribution
   var μ2Dist: Map[Int,Double] = Map[Int,Double](1->1.0)
-
-
   
   // the random number generator
   private val r = new scala.util.Random
@@ -49,7 +47,7 @@ trait Simulation {
     for ((key, value) <- map) if (randNum < value) return key
     return -1
   } //DiscreteRand
-
+  
   /** Runs the simulation
    *  @author mepcotterell@gmail.com
    */
