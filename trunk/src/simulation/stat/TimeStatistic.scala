@@ -6,7 +6,7 @@ package stat
  *  @see http://cs.uga.edu/~jam/scalation/src/scalation/stat/Statistic.scala
  *  @author mepcotterell@gmail.com
  */
-case class TimeStatistic () {
+case class TimeStatistic (f: () => (Double, Double)) {
 
   /** The last time a statistic was collected
    */
@@ -38,8 +38,11 @@ case class TimeStatistic () {
    *  @param x  the value to accumulate
    *  @param t  the time of the observation
    */
-  def apply (x: Double, t: Double) {
-	  
+  def accumulate {
+	
+    // get the current values
+    val (x, t) = f()
+
     val duration = t - lastTime
     lastTime	 = t
     

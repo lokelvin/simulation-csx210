@@ -30,25 +30,25 @@ object DumpTrucks extends App with EventSchedulingSimulation {
   def LQ = loaderQ.size
   
   // Keep track of the LQ statistic
-  val LQ_STAT = TimeStatistic()
+  val LQ_STAT = TimeStatistic(() => (LQ, clock))
   
   // The number of trucks (0, 1, or 2) being loaded at time t
   var L = 0
   
   // Keep track of the L statistic
-  val L_STAT = TimeStatistic()
+  val L_STAT = TimeStatistic(() => (L, clock))
   
   // The number of trucks in the weigh queue
   def WQ = weighQ.size
   
   // Keep track of the WQ statistic
-  val WQ_STAT = TimeStatistic()
+  val WQ_STAT = TimeStatistic(() => (WQ, clock))
   
   // The number of trucks (0 or 1) being weighed
   var W = 0
   
   // Keep track of the W statistic
-  val W_STAT = TimeStatistic()
+  val W_STAT = TimeStatistic(() => (W, clock))
   
   // The total busy time of both loaders from time tStart
   var BL = 0.0
@@ -103,10 +103,10 @@ object DumpTrucks extends App with EventSchedulingSimulation {
       } // if
       
       // update stats
-      L_STAT(L, clock)
-      LQ_STAT(LQ, clock)
-      W_STAT(W, clock)
-      WQ_STAT(WQ, clock)
+      L_STAT.accumulate
+      LQ_STAT.accumulate
+      W_STAT.accumulate
+      WQ_STAT.accumulate
       
     } // def occur
   } // case class Arrival
@@ -161,10 +161,10 @@ object DumpTrucks extends App with EventSchedulingSimulation {
       } // if
       
       // update stats
-      L_STAT(L, clock)
-      LQ_STAT(LQ, clock)
-      W_STAT(W, clock)
-      WQ_STAT(WQ, clock)
+      L_STAT.accumulate
+      LQ_STAT.accumulate
+      W_STAT.accumulate
+      WQ_STAT.accumulate
       
     } // def occur
   } // case class DepartureFromLoadingQ
@@ -204,10 +204,10 @@ object DumpTrucks extends App with EventSchedulingSimulation {
       } // if
       
       // update stats
-      L_STAT(L, clock)
-      LQ_STAT(LQ, clock)
-      W_STAT(W, clock)
-      WQ_STAT(WQ, clock)
+      L_STAT.accumulate
+      LQ_STAT.accumulate
+      W_STAT.accumulate
+      WQ_STAT.accumulate
       
     } // def occur
   } // case class DepartureFromWeighingQ
