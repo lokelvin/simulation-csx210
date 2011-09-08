@@ -5,8 +5,9 @@ package stat
  *  ScalaTion Statistic code.
  *  @see http://cs.uga.edu/~jam/scalation/src/scalation/stat/Statistic.scala
  *  @author mepcotterell@gmail.com
+ *  @param f a function that returns some tuple containing a sample and the clock
  */
-case class TimeStatistic (f: () => (Double, Double)) {
+case class TimeStatistic (getValues: () => (Double, Double)) {
 
   /** The last time a statistic was collected
    */
@@ -41,14 +42,21 @@ case class TimeStatistic (f: () => (Double, Double)) {
   def accumulate {
 	
     // get the current values
-    val (x, t) = f()
+    val (x, t) = getValues()
 
+    // how long did this sample last
     val duration = t - lastTime
+    
+    // update lastTime for next time
     lastTime	 = t
     
+    // increase the number of samples taken
     n     += 1
+    
+    // increase the sum
     sum   += x * duration
    
+    // update the min and max
     if (x < min) min = x
     if (x > max) max = x
     
