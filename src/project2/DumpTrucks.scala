@@ -29,32 +29,32 @@ object DumpTrucks extends App with EventSchedulingSimulation {
   // The number of trucks in the loader queue at time t
   def LQ = loaderQ.size
   
-  // Keep track of the LQ statistic
-  val LQ_STAT = TimeStatistic(() => (LQ, clock))
-  
   // The number of trucks (0, 1, or 2) being loaded at time t
   var L = 0
-  
-  // Keep track of the L statistic
-  val L_STAT = TimeStatistic(() => (L, clock))
   
   // The number of trucks in the weigh queue
   def WQ = weighQ.size
   
-  // Keep track of the WQ statistic
-  val WQ_STAT = TimeStatistic(() => (WQ, clock))
-  
   // The number of trucks (0 or 1) being weighed
   var W = 0
-  
-  // Keep track of the W statistic
-  val W_STAT = TimeStatistic(() => (W, clock))
   
   // The total busy time of both loaders from time tStart
   var BL = 0.0
   
   // The total busy time of the scale from time tStart
   var BS = 0.0
+  
+  // Statistics
+  val LQ_DELAY_STAT  = Statistic[Double]()
+  val L_SERVICE_STAT = Statistic[Double]()
+  val WQ_DELAY_STAT  = Statistic[Double]()
+  val W_SERVICE_STAT = Statistic[Double]()
+  
+  // Duration Statistics
+  val LQ_STAT = DurationStatistic(() => (LQ, clock))
+  val L_STAT  = DurationStatistic(() => (L, clock))
+  val WQ_STAT = DurationStatistic(() => (WQ, clock))
+  val W_STAT  = DurationStatistic(() => (W, clock))
   
   // The service distributions
   val μLoadingDist 	= Map[Int, Double](  5 -> 0.30,  10 -> 0.80,  15 -> 1.00)
@@ -88,6 +88,7 @@ object DumpTrucks extends App with EventSchedulingSimulation {
 	      
 	      val delay = DiscreteRand(μLoadingDist).toInt
 	      schedule(DepartureFromLoadingStation(truck), delay)
+	      L_SERVICE_STAT.takeSample(delay)
 	      
 	      L  = L + 1
 	      
@@ -103,10 +104,10 @@ object DumpTrucks extends App with EventSchedulingSimulation {
       } // if
       
       // update stats
-      L_STAT.accumulate
-      LQ_STAT.accumulate
-      W_STAT.accumulate
-      WQ_STAT.accumulate
+      L_STAT.takeSample
+      LQ_STAT.takeSample
+      W_STAT.takeSample
+      WQ_STAT.takeSample
       
     } // def occur
   } // case class Arrival
@@ -128,6 +129,7 @@ object DumpTrucks extends App with EventSchedulingSimulation {
 	       
 	      val delay = DiscreteRand(μTravelDist).toInt
 	      schedule(DepartureFromWeighingStation(truck), delay)
+	      W_SERVICE_STAT.takeSample(delay)
 	      
 	      W  = W + 1
 	      
@@ -149,6 +151,7 @@ object DumpTrucks extends App with EventSchedulingSimulation {
 	        
 	        val delay = DiscreteRand(μLoadingDist).toInt
 	        schedule(DepartureFromLoadingStation(otherTruck), delay)
+	        L_SERVICE_STAT.takeSample(delay)
 	        
 	        // We just increased the number of trucks loading
 		    L  = L + 1
@@ -161,10 +164,10 @@ object DumpTrucks extends App with EventSchedulingSimulation {
       } // if
       
       // update stats
-      L_STAT.accumulate
-      LQ_STAT.accumulate
-      W_STAT.accumulate
-      WQ_STAT.accumulate
+      L_STAT.takeSample
+      LQ_STAT.takeSample
+      W_STAT.takeSample
+      WQ_STAT.takeSample
       
     } // def occur
   } // case class DepartureFromLoadingQ
@@ -190,8 +193,9 @@ object DumpTrucks extends App with EventSchedulingSimulation {
 	      
 	      val otherTruck = weighQ.dequeue
 	      
-	      val delay = DiscreteRand(μTravelDist).toInt
+	      val delay = DiscreteRand(μWeighingDist).toInt
 	      schedule(DepartureFromWeighingStation(otherTruck), delay)
+	      W_SERVICE_STAT.takeSample(delay)
 	      
 	      // We just increased the number of trucks on the scale
 		  W  = W + 1
@@ -204,10 +208,10 @@ object DumpTrucks extends App with EventSchedulingSimulation {
       } // if
       
       // update stats
-      L_STAT.accumulate
-      LQ_STAT.accumulate
-      W_STAT.accumulate
-      WQ_STAT.accumulate
+      L_STAT.takeSample
+      LQ_STAT.takeSample
+      W_STAT.takeSample
+      WQ_STAT.takeSample
       
     } // def occur
   } // case class DepartureFromWeighingQ
@@ -235,12 +239,14 @@ object DumpTrucks extends App with EventSchedulingSimulation {
   
   // print out some information
   println
-  println("LQ = %s, L = %s".format(LQ_STAT.mean, L_STAT.mean))
-  println("WQ = %s, W = %s".format(WQ_STAT.mean, W_STAT.mean))
-  
-  println
   println("The number of loading docks was %s".format(N_LOAD))
   println("The number of scales / weigh stations was %s".format(N_WEIGH))
+  println
+  println("Average number in loading queue was %s. Average number at the loading station was %s.".format(LQ_STAT.mean, L_STAT.mean))
+  println("Average number in weighing queue was %s. Average number at the scale was %s".format(WQ_STAT.mean, W_STAT.mean))
+  println
+  println("Average time at the loading dock was %s min(s).".format(L_SERVICE_STAT.mean))
+  println("Average time at the scales / weigh stations was %s min(s).".format(W_SERVICE_STAT.mean))
   println
   println("The number of trucks in the loading queue at the end of the simulation was %s".format(LQ))
   println("The number of trucks being loaded at the end of the simulation was %s".format(L))
