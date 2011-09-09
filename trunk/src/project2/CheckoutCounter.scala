@@ -31,6 +31,9 @@ object CheckoutCounter extends App with EventSchedulingSimulation {
 
   // the amount of time the cashier has been busy, total
   var busyTime = 0
+  
+  // The furthest time in the future that a departure event has been scheduled
+  var maxDepartureTimeScheduled = 0.
 
   /** Represents a person in the simulation
    *  @author mepcotterell@gmail.com
@@ -46,7 +49,7 @@ object CheckoutCounter extends App with EventSchedulingSimulation {
   case class Server() extends Entity {
 
     // Indicates whether or not the Operator is idle
-    var idle = true
+    var idle = false
 
   } // case class Operator
 
@@ -92,7 +95,9 @@ object CheckoutCounter extends App with EventSchedulingSimulation {
       if (cashier.idle) {
 
         // schedule a hangup
-        schedule(Departure(person), DiscreteRand(μDist))
+        val serviceTime = DiscreteRand(μDist)
+        schedule(Departure(person), serviceTime)
+        if (clock + serviceTime > maxDepartureTimeScheduled) maxDepartureTimeScheduled = clock + serviceTime
 
         // tell able to stop service
         cashier.idle = false
@@ -118,7 +123,9 @@ object CheckoutCounter extends App with EventSchedulingSimulation {
       // tell the operator to stop service
       cashier.idle = true
       if (waitQ.length > 0) {
-        schedule(Departure(dQ(waitQ)),DiscreteRand(μDist))
+        val serviceTime = DiscreteRand(μDist)
+        schedule(Departure(dQ(waitQ)), serviceTime)
+        if (clock + serviceTime > maxDepartureTimeScheduled) maxDepartureTimeScheduled = clock + serviceTime
         cashier.idle = false;
       }
 
@@ -142,12 +149,12 @@ object CheckoutCounter extends App with EventSchedulingSimulation {
   schedule(Stop(),tStop)
   // run the simulation
   simulate
-
+  
   // print out some information
-  println()
+  println
   println("The total number of customers was %s".format(nCustomers))
   println("The total time the cashier was busy was %d units of time".format(busyTime))
-  println("Server utilization is %3.2f".format(busyTime.toDouble/tStop))
+  println("Server utilization is %3.2f".format(busyTime.toDouble/maxDepartureTimeScheduled))
   println("Max queue length was %d customers".format(qMax))
 
 
