@@ -216,7 +216,6 @@ object DumpTrucks extends App with EventSchedulingSimulation {
     } // def occur
   } // case class DepartureFromWeighingQ
   
-  
   // To initialize the simulation, we assume that, at time 0, five trucks are
   // the loaders (LQ = 3, L = 2) and one is at the scale (WQ = 0, W = 1)
   L  = 2

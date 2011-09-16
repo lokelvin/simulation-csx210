@@ -51,6 +51,6 @@ trait Simulation {
   /** Runs the simulation
    *  @author mepcotterell@gmail.com
    */
-  def simulate (implicit trace: () => String = () => "") : Unit
+  //def simulate (implicit trace: () => String = () => "") : Unit
 
 } // trait Simulation

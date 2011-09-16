@@ -67,10 +67,10 @@ case class Scheduler () {
       
       // print a nice message
       Console.GREEN
-      println("%10s %10s Handling %s".format(clock, "[action]", event))
       if (!trace().isEmpty()) {
     	  println("%10s %10s %s".format(clock, "[trace]", trace()))
       }
+      println("%10s %10s Handling %s".format(clock, "[action]", event))
       Console.RESET
       
       // let the event occur

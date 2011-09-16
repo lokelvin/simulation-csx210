@@ -33,7 +33,7 @@ object CallCenter extends App with EventSchedulingSimulation {
   var qMax = 0
 
   //the number of callers waiting
-  var LQ = 0
+  def LQ = waitQueue.size
 
   //the number of callers being serviced
   var L = 0
@@ -43,6 +43,14 @@ object CallCenter extends App with EventSchedulingSimulation {
 
   //Baker's total busy time
   var BB = 0
+
+  // Statistics
+  val LQ_DELAY_STAT  = Statistic[Double]()
+  val L_SERVICE_STAT = Statistic[Double]()
+
+  // Duration Statistics
+  val LQ_STAT = DurationStatistic(() => (LQ, clock))
+  val L_STAT  = DurationStatistic(() => (L, clock))
 
   
   /** Represents a person in the simulation
@@ -78,13 +86,14 @@ object CallCenter extends App with EventSchedulingSimulation {
       person.timeArrived = clock
       if (able.idle) {
         //put them in the waiting queue
-        if (waitQueue.length > 0){
+        if (LQ > 0){
           enQ(waitQueue,person)
         }
         // or schedule a hangup
         else {
           val delay =  DiscreteRand(μDist)
           schedule(AbleEndSrv(person), delay)
+          L_SERVICE_STAT.takeSample(delay)
           L = L + 1
           BA = BA + delay.toInt
         }
@@ -94,13 +103,14 @@ object CallCenter extends App with EventSchedulingSimulation {
       
       } // if
       else if (baker.idle) {
-        if (waitQueue.length > 0) {
+        if (LQ > 0) {
           enQ(waitQueue,person)
         }
         // schedule a hangup
         else   {
           val delay =  DiscreteRand(μ2Dist)
           schedule(BakerEndSrv(person), delay)
+          L_SERVICE_STAT.takeSample(delay)
           L = L + 1
           BB = BB + delay.toInt
         }
@@ -113,6 +123,8 @@ object CallCenter extends App with EventSchedulingSimulation {
 
       }
 
+      L_STAT.takeSample
+      LQ_STAT.takeSample
 
       if (clock <= tStop) {
         
@@ -132,7 +144,6 @@ object CallCenter extends App with EventSchedulingSimulation {
      waitQ.enqueue(person)
      if (waitQ.length > qMax)
         qMax = waitQ.length
-     LQ = waitQueue.length
   }
 
   /**
@@ -146,7 +157,6 @@ object CallCenter extends App with EventSchedulingSimulation {
     if (dQ.timeWaited > waitMax)
       waitMax = dQ.timeWaited
     waitTotal += dQ.timeWaited
-    LQ = LQ - 1
     //println("\tPerson %d waited %d time units".format(dQ.personNum,dQ.timeWaited))
     dQ
   }
@@ -166,8 +176,11 @@ object CallCenter extends App with EventSchedulingSimulation {
         val delay = DiscreteRand(μDist)
         schedule(AbleEndSrv(dQ(waitQueue)),delay)
         BA = BA + delay.toInt
+        L_SERVICE_STAT.takeSample(delay)
         L = L + 1
         able.idle = false;
+        L_STAT.takeSample
+        LQ_STAT.takeSample
       }
     } // def occur
   } // case class AbleEndSrv
@@ -182,13 +195,17 @@ object CallCenter extends App with EventSchedulingSimulation {
         //tell the operator to stop service
         baker.idle = true;
         L = L - 1
-        if (waitQueue.length > 0) {
+        if (LQ > 0) {
           val delay = DiscreteRand(μDist)
           schedule(BakerEndSrv(dQ(waitQueue)),delay)
           BB = BB + delay.toInt
+          L_SERVICE_STAT.takeSample(delay)
           L = L + 1
           baker.idle = false
+
         }
+        L_STAT.takeSample
+        LQ_STAT.takeSample
       } //def occur
   }//case class BakerEndSrv
 
@@ -201,6 +218,11 @@ object CallCenter extends App with EventSchedulingSimulation {
   simulate
   
   // print out some information
+
+  println()
+  println("Average number in wait queue was %s. Average number of callers in service was %s.".format(LQ_STAT.mean, L_STAT.mean))
+  println
+  println("Average time of a call was %s min(s).".format(L_SERVICE_STAT.mean))
   println()
   println("The total number of calls was %s".format(nCalls))
   println("The max time any caller waited was %s units of time".format(waitMax))
