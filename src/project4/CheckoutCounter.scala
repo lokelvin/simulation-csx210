@@ -17,7 +17,7 @@ object CheckoutCounter extends App with ProcessInteractionSimulation {
 
   implicit val director = new Director
 
-  val N_SERVERS = 2
+  val N_SERVERS = 1
 
   var waitQ : Queue[Customer] =  new Queue[Customer]
 
@@ -30,17 +30,68 @@ object CheckoutCounter extends App with ProcessInteractionSimulation {
 
   var L = 0
 
-  case class Cashier() extends Entity {
+  case class Cashier(serviceTime : Map[Int,Double]) extends Entity {
     var idle = true
   }
 
-  val cashier = Cashier()
+  val cashier = Cashier(μDist)
 
   case class Customer(customerNumber : Int) extends SimActor {
+    var arrivalTime = 0
+    var myCashier : Cashier = null
+
+    actions.push("leave","checkout","arrive")
+
+    def useCashier(cashier : Cashier) {
+      cashier.idle = false
+      myCashier = cashier
+      director.schedule(this,DiscreteRand(cashier.serviceTime).toInt,actions.top)
+    }
+
+    def releaseCashier() {
+      myCashier.idle = true
+      if ( L > N_SERVERS ) {
+        val actor = waitQ.dequeue()
+        println("%s dequeued for %s, waited %d".format(actor,actor.actions.top,director.clock-actor.arrivalTime))
+        director.schedule(actor,0,actor.actions.top)
+      }
+    }
 
     def act() {
-
+      while (true) {
+        actions.pop match {
+          case "arrive" => {
+            arrivalTime = director.clock
+            nCustomers = nCustomers + 1
+            director.schedule(Customer(nCustomers),Rand(1/λ),"arrive")
+            L = L + 1
+            if (L > N_SERVERS) {
+              waitQ.enqueue(this)
+            }
+            else {
+              actions.pop
+              assert(cashier.idle,"Error: Cashier should be idle upon entry into else block of 'Arrive' state")
+              useCashier(cashier)
+            }
+          }
+          case "checkout" => {
+            assert(cashier.idle,"Error: Cashier should be idle upon entry of 'Checkout' state")
+            useCashier(cashier)
+          }
+          case "leave" => {
+            releaseCashier()
+            L = L - 1
+            director ! "resume directing"
+            exit()
+          }
+        }
+        director ! "resume directing"
+        receive { case "resume acting" => println("\t\t%d [action] Person %d is about to %s".format(director.clock,this.customerNumber,this.actions.top))}
+      }
     }
   }
 
+  val actor = Customer(nCustomers)
+  director.schedule(actor,0,actor.actions.top)
+  director.start()
 }

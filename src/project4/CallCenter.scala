@@ -36,13 +36,13 @@ object CallCenter extends App with ProcessInteractionSimulation {
   var L = 0
 
   //a telephone operator
-  case class Operator() extends Entity {
+  case class Operator(serviceTime : Map[Int,Double]) extends Entity {
     var idle = true
   }
 
   //the two operators in this simulation
-  var able = Operator()
-  var baker = Operator()
+  var able = Operator(μDist)
+  var baker = Operator(μ2Dist)
 
   //a caller in this simulation
   case class caller(callerNumber : Int) extends SimActor() {
@@ -61,6 +61,7 @@ object CallCenter extends App with ProcessInteractionSimulation {
     def useOperator(operator : Operator) {
       operator.idle = false
       this.myOperator = operator
+      director.schedule(this,DiscreteRand(myOperator.serviceTime).toInt,actions.top)
     }
 
     /**
@@ -74,7 +75,7 @@ object CallCenter extends App with ProcessInteractionSimulation {
         director.schedule(actor,0,actor.actions.top)
         println("Caller %d dequeued for %s, waited %d".format(actor.callerNumber,actor.actions.top,director.clock-actor.arrivalTime))
       }
-      L = L - 1
+
     }
 
     /**
@@ -95,11 +96,9 @@ object CallCenter extends App with ProcessInteractionSimulation {
                  actions.pop
                  if (able.idle){
                    useOperator(able)
-                   director.schedule(this,DiscreteRand(μDist).toInt,actions.top)
                  }
                  else if (baker.idle){
                    useOperator(baker)
-                   director.schedule(this,DiscreteRand(μ2Dist).toInt,actions.top)
                  }
 
                }
@@ -107,15 +106,14 @@ object CallCenter extends App with ProcessInteractionSimulation {
              case "usePhone" => {
                 if (able.idle){
                    useOperator(able)
-                   director.schedule(this,DiscreteRand(μDist).toInt,actions.top)
                  }
                  else if (baker.idle){
                    useOperator(baker)
-                   director.schedule(this,DiscreteRand(μ2Dist).toInt,actions.top)
                  }
              }
              case "leave" => {
                releaseOperator()
+               L = L - 1
                director !"resume directing"
                exit()
              }
