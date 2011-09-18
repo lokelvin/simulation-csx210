@@ -13,12 +13,16 @@ object CallCenter extends App with ProcessInteractionSimulation {
 
   class Director() extends Model
 
+  //the director for this simulation
   implicit val director = new Director
 
+  //the number of servers available
   val N_SERVERS = 2
 
+  //the number of calls that have come in
   var N_CALLS = 0
 
+  //the waiting line
   var waitQ : Queue[caller] =  new Queue[caller]
 
   // Assign values to the Simulation variables
@@ -28,27 +32,40 @@ object CallCenter extends App with ProcessInteractionSimulation {
   μDist = Map[Int,Double](2->0.30,3->0.58,4->0.83,5->1.0)
   μ2Dist = Map[Int,Double](3->0.35,4->0.60,5->0.80,6->1.0)
 
+  //the number of callers in the system at time t
   var L = 0
 
+  //a telephone operator
   case class Operator() extends Entity {
     var idle = true
   }
 
+  //the two operators in this simulation
   var able = Operator()
   var baker = Operator()
 
+  //a caller in this simulation
   case class caller(callerNumber : Int) extends SimActor() {
+    //to be set upon arrival
     var arrivalTime : Int = 0
 
+    //the 'script' for this actor
     actions.push("leave","usePhone","arrive")
 
+    //who is serving this caller?
     var myOperator : Operator = null
 
+    /**
+     * Claim an operator
+     */
     def useOperator(operator : Operator) {
       operator.idle = false
       this.myOperator = operator
     }
 
+    /**
+     * Release my current operator
+     */
     def releaseOperator() {
       myOperator.idle = true
       println("L value = %d".format(L))
@@ -60,6 +77,9 @@ object CallCenter extends App with ProcessInteractionSimulation {
       L = L - 1
     }
 
+    /**
+     *  Wait for messages from the director to continue through the loop
+     */
     def act() {
          while (true) {
            actions.pop match {
@@ -106,9 +126,11 @@ object CallCenter extends App with ProcessInteractionSimulation {
          }
     }
 
-
+    //set up the first caller
     val actor = caller(N_CALLS)
+    //schedule the first caller
     director.schedule(actor,0,actor.actions.top)
+    //start the simulation
     director.start
 
 }
