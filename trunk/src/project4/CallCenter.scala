@@ -23,7 +23,7 @@ object CallCenter extends App with ProcessInteractionSimulation {
   var N_CALLS = 0
 
   //the waiting line
-  var waitQ : Queue[caller] =  new Queue[caller]
+  var waitQ : Queue[SimActor] =  new Queue[SimActor]
 
   // Assign values to the Simulation variables
   tStart = 0
@@ -69,9 +69,8 @@ object CallCenter extends App with ProcessInteractionSimulation {
      */
     def releaseOperator() {
       myOperator.idle = true
-      println("L value = %d".format(L))
       if (L > N_SERVERS) {
-        val actor = waitQ.dequeue
+        val actor : caller = waitQ.dequeue.asInstanceOf[caller]
         director.schedule(actor,0,actor.actions.top)
         println("Caller %d dequeued for %s, waited %d".format(actor.callerNumber,actor.actions.top,director.clock-actor.arrivalTime))
       }
@@ -83,17 +82,25 @@ object CallCenter extends App with ProcessInteractionSimulation {
      */
     def act() {
          while (true) {
+
            actions.pop match {
+             //the arrival
              case "arrive" => {
+               //Set the arrival time
                arrivalTime = director.clock
+               //increment the number of calls
                N_CALLS = N_CALLS + 1
+               //schedule another arrival
                director.schedule(caller(N_CALLS),DiscreteRand(λDist).toInt,"arrive")
+               //Increment the number of people in service
                L = L + 1
+               //are there servers available?
                if (L > N_SERVERS) {
                  waitQ.enqueue(this)
                }
                else {
                  actions.pop
+                 assert(able.idle || baker.idle,"Error: Able or Baker should be idle at else block of arrival")
                  if (able.idle){
                    useOperator(able)
                  }
@@ -103,7 +110,9 @@ object CallCenter extends App with ProcessInteractionSimulation {
 
                }
              }
+             //using the telephone
              case "usePhone" => {
+               assert(able.idle || baker.idle,"Error: Able or Baker should be idle at 'usePhone'")
                 if (able.idle){
                    useOperator(able)
                  }
@@ -111,24 +120,48 @@ object CallCenter extends App with ProcessInteractionSimulation {
                    useOperator(baker)
                  }
              }
+             //leaving
              case "leave" => {
+               //give up the operator
                releaseOperator()
+               //decrement the number of people in the system
                L = L - 1
+               //relinquish control
                director !"resume directing"
+               //kill yourself
                exit()
              }
            }
+           //relinquish control
           director ! "resume directing"
-          receive {case "resume acting" => {println("\t\t%d [action] Person %d is %s".format(director.clock,this.callerNumber,this.actions.top))}}
+          receive {
+            //normal resume case
+            case "resume acting" => {
+              println("%10s %10s Person %d is %s".format(director.clock,"[action]",this.callerNumber,this.actions.top))
+              if (director.clock > tStop)
+                director.simulating = false
+            }
+            //quit case
+            case "quit" => {
+              //kill yourself
+              exit()
+            }
+          }
           }
          }
     }
 
+    //tell the director about your wait queues
+    director.waitQueues.enqueue(waitQ)
     //set up the first caller
     val actor = caller(N_CALLS)
     //schedule the first caller
     director.schedule(actor,0,actor.actions.top)
     //start the simulation
     director.start
+    while (!director.finished) {
+
+    }
+  println("Print some statistics here")
 
 }

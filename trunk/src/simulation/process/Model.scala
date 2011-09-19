@@ -3,8 +3,8 @@ package process
 
 import scala.actors._
 import scala.actors.Actor._
-import scala.collection.mutable.PriorityQueue
 import event.Event
+import collection.mutable.{Queue, PriorityQueue}
 
 abstract class Model extends Actor {
   //the system clock
@@ -13,6 +13,11 @@ abstract class Model extends Actor {
   val futureEvents = PriorityQueue.empty[SimActor]
   //are we simulating?
   var simulating = true
+
+  var finished = false
+  //wait Queues used in the simulation, keep track of them so we can kill the actors within
+  val waitQueues = Queue.empty[Queue[SimActor]]
+
 
   /**
    * Schedules a new actor on the FEL
@@ -38,8 +43,6 @@ abstract class Model extends Actor {
    */
   def act() {
     while (simulating && !futureEvents.isEmpty) {
-      if (clock > 100)
-        simulating = false
       //the next actor to act
       val actor = futureEvents.dequeue()
       //advance the clock
@@ -55,6 +58,17 @@ abstract class Model extends Actor {
       //wait for the actor to rescind control
       receive {case "resume directing" => {}}
     }
+
+    //kill child processes so we can quit
+    while (!futureEvents.isEmpty) {
+      futureEvents.dequeue() ! "quit"
+    }
+    while (!waitQueues.isEmpty) {
+      val queue = waitQueues.dequeue()
+      while (!queue.isEmpty)
+        queue.dequeue() ! "quit"
+    }
+    finished = true
   }
   
 } // class Model
