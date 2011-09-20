@@ -88,7 +88,9 @@ object CheckoutCounter extends App with ProcessInteractionSimulation {
      * Wait for messages from the director to continue through the loop
      */
     def act() {
+      var waitOnDirector = true
       while (true) {
+        waitOnDirector = true
         //go through your script
         actions.pop match {
             //arrival
@@ -106,9 +108,7 @@ object CheckoutCounter extends App with ProcessInteractionSimulation {
               waitQ.enqueue(this)
             }
             else {
-              actions.pop
-              assert(cashier.idle,"Error: Cashier should be idle upon entry into else block of 'Arrive' state")
-              useCashier(cashier)
+              waitOnDirector = false
             }
           }
             //checking out
@@ -128,21 +128,24 @@ object CheckoutCounter extends App with ProcessInteractionSimulation {
             exit()
           }
         }
-        //relinquish control
-        director ! "resume directing"
-        //wait for messages
-        receive {
-          //the normal case
-          case "resume acting" => {
-            println("%10s %10s Person %d is about to %s".format(director.clock,"[action]",this.customerNumber,this.actions.top))
+        if (waitOnDirector)
+        {
+          //relinquish control
+          director ! "resume directing"
+          //wait for messages
+          receive {
+            //the normal case
+            case "resume acting" => {
+              println("%10s %10s Person %d is about to %s".format(director.clock,"[action]",this.customerNumber,this.actions.top))
+            }
+              //the quit case
+            case "quit" =>
+            {
+              //kill yourself
+              exit()
+            }
           }
-            //the quit case
-          case "quit" =>
-          {
-            //kill yourself
-            exit()
-          }
-      }
+        }
     }
   }
   }
