@@ -81,8 +81,9 @@ object CallCenter extends App with ProcessInteractionSimulation {
      *  Wait for messages from the director to continue through the loop
      */
     def act() {
+      var waitOnDirector = true
          while (true) {
-
+           waitOnDirector = true
            actions.pop match {
              //the arrival
              case "arrive" => {
@@ -99,15 +100,7 @@ object CallCenter extends App with ProcessInteractionSimulation {
                  waitQ.enqueue(this)
                }
                else {
-                 actions.pop
-                 assert(able.idle || baker.idle,"Error: Able or Baker should be idle at else block of arrival")
-                 if (able.idle){
-                   useOperator(able)
-                 }
-                 else if (baker.idle){
-                   useOperator(baker)
-                 }
-
+                 waitOnDirector = false
                }
              }
              //using the telephone
@@ -132,21 +125,24 @@ object CallCenter extends App with ProcessInteractionSimulation {
                exit()
              }
            }
-           //relinquish control
-          director ! "resume directing"
-          receive {
-            //normal resume case
-            case "resume acting" => {
-              println("%10s %10s Person %d is %s".format(director.clock,"[action]",this.callerNumber,this.actions.top))
-              if (director.clock > tStop)
-                director.simulating = false
+           if (waitOnDirector)
+           {
+             //relinquish control
+            director ! "resume directing"
+            receive {
+              //normal resume case
+              case "resume acting" => {
+                println("%10s %10s Person %d is %s".format(director.clock,"[action]",this.callerNumber,this.actions.top))
+                if (director.clock > tStop)
+                  director.simulating = false
+              }
+              //quit case
+              case "quit" => {
+                //kill yourself
+                exit()
+              }
             }
-            //quit case
-            case "quit" => {
-              //kill yourself
-              exit()
-            }
-          }
+           }
           }
          }
     }
