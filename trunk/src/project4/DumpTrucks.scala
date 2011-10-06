@@ -123,7 +123,7 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
   case class DumpTruck (id: Int) extends SimActor {
     
     // to be set upon arrival
-    var arrivalTime = 0
+    var arrivalTime : Double= 0.0
     
     // who is my loader
     var myLoader: Loader = null

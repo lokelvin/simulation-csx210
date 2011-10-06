@@ -8,7 +8,7 @@ import collection.mutable.{Queue, PriorityQueue}
 
 abstract class Model extends Actor {
   //the system clock
-  var clock = 0
+  var clock : Double = 0.0
   // The future events list
   val futureEvents = PriorityQueue.empty[SimActor]
   //are we simulating?
@@ -25,7 +25,7 @@ abstract class Model extends Actor {
    * @param delay the distance in the future to schedule this actor
    * @param nextState the state the actor will be entering
    */
-  def schedule (actor : SimActor, delay: Int, nextState : String) {
+  def schedule (actor : SimActor, delay: Double, nextState : String) {
     //Set the actor's activation time
     actor.actTime = clock + delay
     // add the event to the list

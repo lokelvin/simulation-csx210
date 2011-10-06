@@ -35,9 +35,12 @@ object CheckoutCounterExp extends App with ProcessInteractionSimulation {
   μ      = 10.0
   
   val ρ = λ / μ
-  
-  val λDistribution = Exponential(λ)
-  val μDistribution = Exponential(μ)
+
+   def log(x: Double): Double = java.lang.Math.log(x)
+  def exp(n:Double) = -(1/n)*log(scala.util.Random.nextDouble())
+
+  //def λDistribution = exp(1.0 / λ)
+  //def μDistribution = exp(1.0 / μ)
 
   //number of customers that have been through the system
   var nCustomers = 0
@@ -58,12 +61,22 @@ object CheckoutCounterExp extends App with ProcessInteractionSimulation {
   val LS_STAT = Statistic[Double]()
   val L_STAT  = Statistic[Double]()
 
+  def takeSamples {
+
+        WS_STAT.takeSample
+        WQ_STAT.takeSample
+        W_STAT.takeSample
+
+        LQ_STAT.takeSample(LW)
+        LS_STAT.takeSample(LS)
+        L_STAT.takeSample(L)
+  }
   //the cashier
-  case class Cashier(serviceTime : Variate) extends Entity {
+  case class Cashier(serviceTime : Double) extends Entity {
     var idle = true
   }
 
-  val cashier = Cashier(μDistribution)
+  val cashier = Cashier(μ)
 
   //the stopping "event"/process which kills the system
   case class Stopper() extends SimActor {
@@ -72,7 +85,7 @@ object CheckoutCounterExp extends App with ProcessInteractionSimulation {
       director.simulating = false
       director ! "resume directing"
       
-      for (i <- 1 to 1000000000) {}
+      for (i <- 1 to 10000) {}
       
       println
       println("STATISTICS")
@@ -125,7 +138,7 @@ object CheckoutCounterExp extends App with ProcessInteractionSimulation {
   //the Customer
   case class Customer(customerNumber : Int) extends SimActor {
     //to be set upon arrival
-    var arrivalTime = 0
+    var arrivalTime = 0.0
     //who is my cashier?
     var myCashier : Cashier = null
 
@@ -139,7 +152,7 @@ object CheckoutCounterExp extends App with ProcessInteractionSimulation {
     def useCashier(cashier : Cashier) {
       cashier.idle = false
       myCashier = cashier
-      director.schedule(this, cashier.serviceTime.gen.toInt,actions.top)
+      director.schedule(this, exp(1/cashier.serviceTime).toInt,actions.top)
     }
 
     /**
@@ -150,7 +163,7 @@ object CheckoutCounterExp extends App with ProcessInteractionSimulation {
       //if there are still people in line, give the cashier to them immediately
       if ( L > N_SERVERS ) {
         val actor = waitQ.dequeue().asInstanceOf[Customer]
-        println("%s dequeued for %s, waited %d".format(actor,actor.actions.top,director.clock-actor.arrivalTime))
+        println("%s dequeued for %s, waited %s".format(actor,actor.actions.top,director.clock-actor.arrivalTime))
         director.schedule(actor,0,actor.actions.top)
       }
     }
@@ -161,26 +174,20 @@ object CheckoutCounterExp extends App with ProcessInteractionSimulation {
     def act() {
       var waitOnDirector = true
       while (true) {
-        
-        WS_STAT.takeSample
-        WQ_STAT.takeSample
-        W_STAT.takeSample
-        
-        LQ_STAT.takeSample(LW)
-        LS_STAT.takeSample(LS)
-        L_STAT.takeSample(L)
+
         
         waitOnDirector = true
         //go through your script
         actions.pop match {
             //arrival
           case "arrive" => {
+
             //set the arrival time
             arrivalTime = director.clock
             //increment the number of customers through the system
             nCustomers = nCustomers + 1
             //schedule another arrival
-            director.schedule(Customer(nCustomers), λDistribution.gen.toInt, "arrive")
+            director.schedule(Customer(nCustomers), exp(1/λ).toInt, "arrive")
             //increment the number of customers in the system
             L = L + 1
             //if there are people in line, get in line
@@ -208,6 +215,7 @@ object CheckoutCounterExp extends App with ProcessInteractionSimulation {
             exit()
           }
         }
+        takeSamples
         if (waitOnDirector)
         {
           //relinquish control
