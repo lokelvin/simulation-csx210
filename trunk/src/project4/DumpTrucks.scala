@@ -82,10 +82,12 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
       println("----------------------------------------------------------------------------")
       println("| %10s | %10s | %10s | %10s | %20s |".format("STAT", "MIN", "MAX", "SAMPLES", "MEAN"))
       println("----------------------------------------------------------------------------")
-      println("| %10s | %10s | %10s | %10s | %20s |".format("LQ_L", LW_L_STAT.min, LW_L_STAT.max, LW_L_STAT.n, LW_L_STAT.mean))
-      println("| %10s | %10s | %10s | %10s | %20s |".format("LS_L", LS_L_STAT.min, LS_L_STAT.max, LS_L_STAT.n, LS_L_STAT.mean))
-      println("| %10s | %10s | %10s | %10s | %20s |".format("LQ_W", LW_W_STAT.min, LW_W_STAT.max, LW_W_STAT.n, LW_W_STAT.mean))
-      println("| %10s | %10s | %10s | %10s | %20s |".format("LS_W", LS_W_STAT.min, LS_W_STAT.max, LS_W_STAT.n, LS_W_STAT.mean))
+      println("| %10s | %10s | %10s | %10s | %20s |".format("LQ_LOAD", LW_L_STAT.min, LW_L_STAT.max, LW_L_STAT.n, LW_L_STAT.mean))
+      println("| %10s | %10s | %10s | %10s | %20s |".format("LS_LOAD", LS_L_STAT.min, LS_L_STAT.max, LS_L_STAT.n, LS_L_STAT.mean))
+      println("| %10s | %10s | %10s | %10s | %20s |".format("L_LOAD", "n/a", "n/a", "n/a", LW_L_STAT.mean + LS_L_STAT.mean))
+      println("| %10s | %10s | %10s | %10s | %20s |".format("LQ_WEIGH", LW_W_STAT.min, LW_W_STAT.max, LW_W_STAT.n, LW_W_STAT.mean))
+      println("| %10s | %10s | %10s | %10s | %20s |".format("LS_WEIGH", LS_W_STAT.min, LS_W_STAT.max, LS_W_STAT.n, LS_W_STAT.mean))
+      println("| %10s | %10s | %10s | %10s | %20s |".format("L_WEIGH", "n/a", "n/a", "n/a", LW_W_STAT.mean + LS_W_STAT.mean))
       println("----------------------------------------------------------------------------")
       
     }
