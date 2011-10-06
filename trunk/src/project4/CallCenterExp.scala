@@ -27,14 +27,19 @@ object CallCenterExp extends App with ProcessInteractionSimulation {
 
   // Assign values to the Simulation variables
   tStart = 0
-  tStop  = 100
+  tStop  = 1000
   
 
   import scalation.random._
   
-  val λDistribution = Exponential()
-  val μDistribution = Exponential()
-  val μ2Distribution = Exponential()
+  λ = 6.0
+  μ = 10.0
+  
+  val ρ = λ / μ 
+  
+  val λDistribution = Exponential(λ)
+  val μDistribution = Exponential(μ)
+  val μ2Distribution = Exponential(μ)
 
   //the number of callers in the system at time t
   var L = 0
@@ -185,21 +190,21 @@ object CallCenterExp extends App with ProcessInteractionSimulation {
 			      
 			      println
 			      println("MARKVOVIAN CALCULATED STATISTICS")
-			      println("----------------------------------------------------------------------------")
-			      println("| %10s | %10s | %10s | %10s | %20s |".format("STAT", "MIN", "MAX", "SAMPLES", "MEAN"))
-			      println("----------------------------------------------------------------------------")
+			      println("-------------------------------------")
+			      println("| %10s | %20s |".format("STAT", "MEAN"))
+			      println("-------------------------------------")
 			      
-			      println("| %10s | %10s | %10s | %10s | %20s |".format("LQ", LQ_STAT.min, LQ_STAT.max, LQ_STAT.n, LQ_STAT.mean))
-			      println("| %10s | %10s | %10s | %10s | %20s |".format("LS", LS_STAT.min, LS_STAT.max, LS_STAT.n, LS_STAT.mean))
-			      println("| %10s | %10s | %10s | %10s | %20s |".format("L", "n/a", "n/a", "n/a", L_STAT.mean))
+			      println("| %10s | %20s |".format("LQ", (ρ * ρ) / (1 - ρ) ))
+			      println("| %10s | %20s |".format("LS", ρ                 ))
+			      println("| %10s | %20s |".format("L",  ρ / (1 - ρ)       ))
 			      
-			      println("----------------------------------------------------------------------------")
+			      println("-------------------------------------")
 			      
-			      println("| %10s | %10s | %10s | %10s | %20s |".format("WQ", WQ_STAT.min, WQ_STAT.max, WQ_STAT.n, WQ_STAT.mean))
-			      println("| %10s | %10s | %10s | %10s | %20s |".format("WS", WS_STAT.min, WS_STAT.max, WS_STAT.n, WS_STAT.mean))
-			      println("| %10s | %10s | %10s | %10s | %20s |".format("W", "n/a", "n/a", "n/a", W_STAT.mean))
+			      println("| %10s | %20s |".format("WQ", (ρ / μ) / (1 - ρ) ))
+			      println("| %10s | %20s |".format("WS", (1 / μ)           ))
+			      println("| %10s | %20s |".format("W",  (1 / μ) / (1 - ρ) ))
 			      
-			      println("----------------------------------------------------------------------------")
+			      println("-------------------------------------")
        
                 }
               }
