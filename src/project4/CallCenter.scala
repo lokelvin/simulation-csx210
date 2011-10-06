@@ -34,7 +34,16 @@ object CallCenter extends App with ProcessInteractionSimulation {
 
   //the number of callers in the system at time t
   var L = 0
-
+  def LW = waitQ.size
+  def LS = if (L > N_SERVERS) N_SERVERS else L
+  
+  def getClock = director.clock
+  
+  // Duration Statistics
+  val LW_STAT = DurationStatistic(() => (LW, getClock))
+  val LS_STAT = DurationStatistic(() => (LS, getClock))
+  val L_STAT  = DurationStatistic(() => (L, getClock)) 
+  
   //a telephone operator
   case class Operator(serviceTime : Map[Int,Double]) extends Entity {
     var idle = true
@@ -83,6 +92,11 @@ object CallCenter extends App with ProcessInteractionSimulation {
     def act() {
       var waitOnDirector = true
          while (true) {
+           
+           LS_STAT.takeSample
+           LW_STAT.takeSample
+           L_STAT.takeSample
+           
            waitOnDirector = true
            actions.pop match {
              //the arrival
@@ -133,8 +147,22 @@ object CallCenter extends App with ProcessInteractionSimulation {
               //normal resume case
               case "resume acting" => {
                 println("%10s %10s Person %d is %s".format(director.clock,"[action]",this.callerNumber,this.actions.top))
-                if (director.clock > tStop)
+                if (director.clock > tStop) {
                   director.simulating = false
+                  
+                  for (i <- 1 to 1000000000) {}
+      
+			      println
+			      println("STATISTICS")
+			      println("----------------------------------------------------------------------------")
+			      println("| %10s | %10s | %10s | %10s | %20s |".format("STAT", "MIN", "MAX", "SAMPLES", "MEAN"))
+			      println("----------------------------------------------------------------------------")
+			      println("| %10s | %10s | %10s | %10s | %20s |".format("LQ", LW_STAT.min, LW_STAT.max, LW_STAT.n, LW_STAT.mean))
+			      println("| %10s | %10s | %10s | %10s | %20s |".format("LS", LS_STAT.min, LS_STAT.max, LS_STAT.n, LS_STAT.mean))
+			      println("| %10s | %10s | %10s | %10s | %20s |".format("L", "n/a", "n/a", "n/a", L_STAT.mean))
+			      println("----------------------------------------------------------------------------")
+       
+                }
               }
               //quit case
               case "quit" => {
