@@ -16,7 +16,6 @@ package scalation.random
 import scala.math.{exp, floor, log, Pi, round, pow, sqrt, tan}
 
 import scalation.math.Combinatorics
-import scalation.math.Vectors.VectorD
 import scalation.util.Error
 
 /**::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -254,51 +253,7 @@ case class Deterministic (x: Double = 1, stream: Int = 0)
 
 } // Deterministic class
 
-/**::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- * This class generates generalized Discrete random variates for a given
- * distribution specified using either a probability mass function (pmf)
- * or a cumulative distribution function (cdf).
- * This discrete RV models arbitrary experiments with discrete outcomes.
- * @param dist        the distribution function (pdf or cdf)
- * @param x           the x-coordinate values (mass points)
- * @param cumulative  whether dist is cumulative (cdf) or not (pmf)
- * @param stream      the random number stream
- */
-case class Discrete (dist: VectorD = new VectorD (.2, .2, .2, .2, .2), x: VectorD = null,
-                     cumulative: Boolean = false, stream: Int = 0)
-     extends Variate (stream)
-{
-    private val cdf = if (cumulative) dist.apply () else dist.cumulate.apply ()
-    private val n   = dist.dim
-    private val xx  = if (x == null || x.dim == 0) dist.ramp ().apply () else x.apply ()
 
-    {
-        if (xx.length != dist.dim) flaw ("Discrete", "dist and xx must have the same length")
-        _discrete = true
-    } // primary constructor
-
-    def mean: Double =
-    {
-       var sum = xx(0) * cdf(0)
-       for (i <- 1 until n) sum += xx(i) * (cdf(i) - cdf(i-1))
-       sum
-    } // mean
-
-    def pf (z: Double): Double =
-    {
-        var j = -1
-        for (i <- 0 until n if xx(i) == z) j = i
-        if (j >= 0) if (j == 0) cdf(0) else cdf(j) - cdf(j-1) else 0 
-    } // pf
-
-    def gen: Double =
-    {
-        val ran = r.gen
-        for (i <- 0 until n if ran <= cdf(i)) return xx(i)
-        xx(cdf.length - 1)
-    } // gen
-
-} // Discrete class
 
 /**::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  * This class generates Erlang random variates.
@@ -1010,7 +965,6 @@ object VariateTest extends App
     meansTest (Cauchy ())
     meansTest (ChiSquare ())
     meansTest (Deterministic ())
-    meansTest (Discrete ())
     meansTest (Erlang ())
     meansTest (Exponential ())
     meansTest (Fisher ())
@@ -1034,7 +988,6 @@ object VariateTest extends App
     distrTest (Cauchy ())
     distrTest (ChiSquare ())
     distrTest (Deterministic ())
-    distrTest (Discrete ())
     distrTest (Erlang ())
     distrTest (Exponential ())
     distrTest (Fisher ())

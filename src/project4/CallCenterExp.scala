@@ -29,11 +29,12 @@ object CallCenterExp extends App with ProcessInteractionSimulation {
   tStart = 0
   tStop  = 100
   
-  λ = 1.0/10.0
+
+  import scalation.random._
   
-  λDist = Map[Int,Double](1->0.25,2->0.65,3->0.85,4->1.0)
-  μDist = Map[Int,Double](2->0.30,3->0.58,4->0.83,5->1.0)
-  μ2Dist = Map[Int,Double](3->0.35,4->0.60,5->0.80,6->1.0)
+  val λDistribution = Exponential()
+  val μDistribution = Exponential()
+  val μ2Distribution = Exponential()
 
   //the number of callers in the system at time t
   var L = 0
@@ -53,13 +54,13 @@ object CallCenterExp extends App with ProcessInteractionSimulation {
   val L_STAT  = Statistic[Double]()
   
   //a telephone operator
-  case class Operator(serviceTime : Map[Int,Double]) extends Entity {
+  case class Operator(serviceTime : Variate) extends Entity {
     var idle = true
   }
 
   //the two operators in this simulation
-  var able = Operator(μDist)
-  var baker = Operator(μ2Dist)
+  var able = Operator(μDistribution)
+  var baker = Operator(μ2Distribution)
 
   //a caller in this simulation
   case class caller(callerNumber : Int) extends SimActor() {
@@ -78,7 +79,7 @@ object CallCenterExp extends App with ProcessInteractionSimulation {
     def useOperator(operator : Operator) {
       operator.idle = false
       this.myOperator = operator
-      director.schedule(this,DiscreteRand(myOperator.serviceTime).toInt,actions.top)
+      director.schedule(this, myOperator.serviceTime.gen.toInt, actions.top)
     }
 
     /**
@@ -117,8 +118,8 @@ object CallCenterExp extends App with ProcessInteractionSimulation {
                arrivalTime = director.clock
                //increment the number of calls
                N_CALLS = N_CALLS + 1
-               //schedule another arrival
-               director.schedule(caller(N_CALLS),DiscreteRand(λDist).toInt,"arrive")
+               // another arrival
+               director.schedule(caller(N_CALLS), λDistribution.gen.toInt,"arrive")
                //Increment the number of people in service
                L = L + 1
                //are there servers available?
@@ -165,7 +166,7 @@ object CallCenterExp extends App with ProcessInteractionSimulation {
                   for (i <- 1 to 1000000000) {}
       
 			      println
-			      println("STATISTICS")
+			      println("GATHERED STATISTICS")
 			      println("----------------------------------------------------------------------------")
 			      println("| %10s | %10s | %10s | %10s | %20s |".format("STAT", "MIN", "MAX", "SAMPLES", "MEAN"))
 			      println("----------------------------------------------------------------------------")
@@ -173,6 +174,24 @@ object CallCenterExp extends App with ProcessInteractionSimulation {
 			      println("| %10s | %10s | %10s | %10s | %20s |".format("LQ_LOAD", LQ_STAT.min, LQ_STAT.max, LQ_STAT.n, LQ_STAT.mean))
 			      println("| %10s | %10s | %10s | %10s | %20s |".format("LS_LOAD", LS_STAT.min, LS_STAT.max, LS_STAT.n, LS_STAT.mean))
 			      println("| %10s | %10s | %10s | %10s | %20s |".format("L_LOAD", "n/a", "n/a", "n/a", L_STAT.mean))
+			      
+			      println("----------------------------------------------------------------------------")
+			      
+			      println("| %10s | %10s | %10s | %10s | %20s |".format("WQ", WQ_STAT.min, WQ_STAT.max, WQ_STAT.n, WQ_STAT.mean))
+			      println("| %10s | %10s | %10s | %10s | %20s |".format("WS", WS_STAT.min, WS_STAT.max, WS_STAT.n, WS_STAT.mean))
+			      println("| %10s | %10s | %10s | %10s | %20s |".format("W", "n/a", "n/a", "n/a", W_STAT.mean))
+			      
+			      println("----------------------------------------------------------------------------")
+			      
+			      println
+			      println("MARKVOVIAN CALCULATED STATISTICS")
+			      println("----------------------------------------------------------------------------")
+			      println("| %10s | %10s | %10s | %10s | %20s |".format("STAT", "MIN", "MAX", "SAMPLES", "MEAN"))
+			      println("----------------------------------------------------------------------------")
+			      
+			      println("| %10s | %10s | %10s | %10s | %20s |".format("LQ", LQ_STAT.min, LQ_STAT.max, LQ_STAT.n, LQ_STAT.mean))
+			      println("| %10s | %10s | %10s | %10s | %20s |".format("LS", LS_STAT.min, LS_STAT.max, LS_STAT.n, LS_STAT.mean))
+			      println("| %10s | %10s | %10s | %10s | %20s |".format("L", "n/a", "n/a", "n/a", L_STAT.mean))
 			      
 			      println("----------------------------------------------------------------------------")
 			      
@@ -199,7 +218,7 @@ object CallCenterExp extends App with ProcessInteractionSimulation {
     director.waitQueues.enqueue(waitQ)
     //set up the first caller
     val actor = caller(N_CALLS)
-    //schedule the first caller
+    // the first caller
     director.schedule(actor,0,actor.actions.top)
     //start the simulation
     director.start
