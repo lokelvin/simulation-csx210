@@ -88,13 +88,15 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
      */
     def useLoader {
       
+      println("%s started useLoader".format(this))
+      
       L_LOAD += 1
       
       if (loaderA.idle == true) {
         myLoader = loaderA
-      } else if (loaderB.idle == true) {
+      } else {
         myLoader = loaderB
-      }
+      } 
       
       myLoader.idle = false
       director.schedule(this, DiscreteRand(μLoadingDist).toInt, actions.top)
@@ -106,14 +108,16 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
      */
     def releaseLoader {
       
+      println("%s started releaseLoader".format(this))
+      
       L_LOAD -= 1
       myLoader.idle = true
       
       //if there are still people in line, give the cashier to them immediately
-      if (L > N_LOAD) {
+      if (loadQ.size > N_LOAD) {
         val actor = loadQ.dequeue
         println("%s dequeued for %s, waited %d".format(actor, actor.actions.top, director.clock-actor.asInstanceOf[DumpTruck].arrivalTime))
-        director.schedule(actor,0,actor.actions.top)
+        director.schedule(actor, 0, actor.actions.top)
       }
       
     }
@@ -123,6 +127,7 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
      * @param cashier the cashier to be claimed
      */
     def useWeigher {
+      println("%s started useWeigher".format(this))
       L_WEIGH += 1   
       weigher.idle = false
       myWeigher = weigher
@@ -134,11 +139,13 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
      */
     def releaseWeigher {
       
+      println("%s started releaseWeigher".format(this))
+      
       L_WEIGH -= 1
       myWeigher.idle = true
       
       //if there are still people in line, give the cashier to them immediately
-      if (L > N_WEIGH) {
+      if (weighQ.size > N_WEIGH) {
         val actor = weighQ.dequeue
         println("%s dequeued for %s, waited %d".format(actor, actor.actions.top, director.clock-actor.asInstanceOf[DumpTruck].arrivalTime))
         director.schedule(actor,0,actor.actions.top)
@@ -146,9 +153,26 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
     }
     
     def travel {
+      println("%s started travel".format(this))
       releaseWeigher
       director.schedule(this, DiscreteRand(μTravelDist).toInt, actions.top)
     }
+    
+    
+    // my script
+    actions.push("weigh", "arriveWeigh", "load", "arriveLoad",
+    			 "weigh", "arriveWeigh", "load", "arriveLoad",
+    			 "weigh", "arriveWeigh", "load", "arriveLoad",
+    			 "weigh", "arriveWeigh", "load", "arriveLoad",
+    			 "weigh", "arriveWeigh", "load", "arriveLoad",
+    			 "weigh", "arriveWeigh", "load", "arriveLoad",
+    			 "weigh", "arriveWeigh", "load", "arriveLoad",
+    			 "weigh", "arriveWeigh", "load", "arriveLoad",
+    			 "weigh", "arriveWeigh", "load", "arriveLoad",
+    			 "weigh", "arriveWeigh", "load", "arriveLoad",
+    			 "weigh", "arriveWeigh", "load", "arriveLoad",
+    			 "weigh", "arriveWeigh", "load", "arriveLoad",
+    			 "weigh", "arriveWeigh", "load", "arriveLoad")
     
     def act() {
       
@@ -164,23 +188,31 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
           // arrival at loading station
           case "arriveLoad" => {
             
+            println("%s received message arriveLoad".format(this))
+            
             // set the arrival time
             arrivalTime = director.clock
             
             // if there are people in line, get in line
-            if (L_LOAD > N_LOAD) loadQ.enqueue(this) else waitOnDirector = false
+            if (loadQ.size > N_LOAD) {
+              loadQ.enqueue(this)
+              director ! "weighWait"
+            } else {
+              waitOnDirector = false
+            }
             
           }
           
           // load
           case "load" => {
+            println("%s received message Load".format(this))
             useLoader
           }
           
           // arrive at weighing station
           case "arriveWeigh" => {
            
-            releaseLoader
+            println("%s received message arriveWeigh".format(this))
             
             // set the arrival time
             arrivalTime = director.clock
@@ -191,11 +223,14 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
           }
           
           // weigh
-          case "weigh" => useWeigher
+          case "weigh" => {
+            println("%s received message weigh".format(this))
+            useWeigher
+          }
           
           // travel 
           case "travel" => {
-            releaseWeigher
+            println("%s received message travel".format(this))
             travel
           }
           
@@ -210,14 +245,23 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
           // wait for messages
           receive {
           
+            case "loadWait" => {
+              println("%10s %10s %s is waiting in the load queue.".format(director.clock,"[action]", this))
+            }
+            
+            case "weighWait" => {
+              println("%10s %10s %s is waiting in the weigh queue.".format(director.clock,"[action]", this))
+            }
+            
             // the normal case
             case "resume acting" => {
-            	println("%10s %10s Person %d is about to %s".format(director.clock,"[action]", this.id, this.actions.top))
+            	println("%10s %10s %s is about to %s".format(director.clock,"[action]", this, this.actions.top))
             }
             
             // the quit case
             case "quit" =>
             {
+              println("%10s %10s %s died.".format(director.clock,"[action]", this))
               // kill yourself
               exit()
             }
@@ -238,21 +282,19 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
   val DT3 = DumpTruck(3)
   val DT4 = DumpTruck(4)
   val DT5 = DumpTruck(5)
-  val DT6 = DumpTruck(6)
-  
-  // To initialize the simulation, we assume that, at time 0, five trucks are
-  // the loaders (LQ = 3, L = 2) and one is at the scale (WQ = 0, W = 1)
-  L_LOAD   = 2
-  L_WEIGH  = 1  
- 
-  // Enqueue the three trucks in the loader queue
-  loadQ.enqueue(DT4, DT5, DT6)
+  val DT6 = DumpTruck(6)  
   
   // tell the director about your wait queues
   director.waitQueues.enqueue(loadQ, weighQ)
   
   // schedule the first arrival
   director.schedule(DT1, 0, DT1.actions.top)
+  director.schedule(DT2, 0, DT2.actions.top)
+  director.schedule(DT3, 0, DT3.actions.top)
+  director.schedule(DT4, 0, DT4.actions.top)
+  director.schedule(DT5, 0, DT5.actions.top)
+  director.schedule(DT6, 0, DT6.actions.top)
+  
 
   //schedule the stopper class at time 60
   director.schedule(Stopper(), tStop, "Stop simulation")
@@ -260,6 +302,6 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
   //run
   director.start
   
-  println("Print some statistics here")
+  
 
 }
