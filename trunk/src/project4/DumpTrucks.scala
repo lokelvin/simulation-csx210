@@ -79,14 +79,14 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
       
       println
       println("STATISTICS")
-      println("-------------------------------------------------------------")
-      println("%10s | %10s | %10s | %20s |".format("STAT", "MIN", "MAX", "MEAN"))
-      println("-------------------------------------------------------------")
-      println("%10s | %10s | %10s | %20s |".format("LW_L", LW_L_STAT.min, LW_L_STAT.max, LW_L_STAT.mean))
-      println("%10s | %10s | %10s | %20s |".format("LS_L", LS_L_STAT.min, LS_L_STAT.max, LS_L_STAT.mean))
-      println("%10s | %10s | %10s | %20s |".format("LW_W", LW_W_STAT.min, LW_W_STAT.max, LW_W_STAT.mean))
-      println("%10s | %10s | %10s | %20s |".format("LS_W", LS_W_STAT.min, LS_W_STAT.max, LS_W_STAT.mean))
-      println("-------------------------------------------------------------")
+      println("----------------------------------------------------------------------------")
+      println("| %10s | %10s | %10s | %10s | %20s |".format("STAT", "MIN", "MAX", "SAMPLES", "MEAN"))
+      println("----------------------------------------------------------------------------")
+      println("| %10s | %10s | %10s | %10s | %20s |".format("LW_L", LW_L_STAT.min, LW_L_STAT.max, LW_L_STAT.n, LW_L_STAT.mean))
+      println("| %10s | %10s | %10s | %10s | %20s |".format("LS_L", LS_L_STAT.min, LS_L_STAT.max, LS_L_STAT.n, LS_L_STAT.mean))
+      println("| %10s | %10s | %10s | %10s | %20s |".format("LW_W", LW_W_STAT.min, LW_W_STAT.max, LW_W_STAT.n, LW_W_STAT.mean))
+      println("| %10s | %10s | %10s | %10s | %20s |".format("LS_W", LS_W_STAT.min, LS_W_STAT.max, LS_W_STAT.n, LS_W_STAT.mean))
+      println("----------------------------------------------------------------------------")
       
     }
   }
