@@ -124,11 +124,6 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
       myLoader.idle = false
       director.schedule(this, DiscreteRand(μLoadingDist).toInt, actions.top)
       
-      LW_L_STAT.takeSample
-      LS_L_STAT.takeSample
-      LW_W_STAT.takeSample
-      LS_W_STAT.takeSample
-      
     }
     
     /**
@@ -146,11 +141,6 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
         director.schedule(actor, 0, actor.actions.top)
       }
       
-      LW_L_STAT.takeSample
-      LS_L_STAT.takeSample
-      LW_W_STAT.takeSample
-      LS_W_STAT.takeSample
-      
     }
     
     /**
@@ -163,11 +153,6 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
       weigher.idle = false
       myWeigher = weigher
       director.schedule(this, DiscreteRand(μWeighingDist).toInt, actions.top)
-      
-      LW_L_STAT.takeSample
-      LS_L_STAT.takeSample
-      LW_W_STAT.takeSample
-      LS_W_STAT.takeSample
       
     }
     
@@ -186,22 +171,12 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
         director.schedule(actor,0,actor.actions.top)
       }
       
-      LW_L_STAT.takeSample
-      LS_L_STAT.takeSample
-      LW_W_STAT.takeSample
-      LS_W_STAT.takeSample
-      
     }
     
     def travel {
 
       releaseWeigher
       director.schedule(this, DiscreteRand(μTravelDist).toInt, actions.top)
-      
-      LW_L_STAT.takeSample
-      LS_L_STAT.takeSample
-      LW_W_STAT.takeSample
-      LS_W_STAT.takeSample
       
     }
     
@@ -226,6 +201,11 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
       var waitOnDirector = true
       
       loop {
+        
+        LW_L_STAT.takeSample
+        LS_L_STAT.takeSample
+        LW_W_STAT.takeSample
+        LS_W_STAT.takeSample
         
         waitOnDirector = true
         
