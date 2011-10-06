@@ -137,7 +137,7 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
       L_LOAD -= 1
       myLoader.idle = true
       
-      //if there are still people in line, give the cashier to them immediately
+      // if there are still people in line, give the cashier to them immediately
       if (loadQ.size > N_LOAD) {
         val actor = loadQ.dequeue
         println("%s dequeued for %s, waited %d".format(actor, actor.actions.top, director.clock-actor.asInstanceOf[DumpTruck].arrivalTime))
@@ -241,7 +241,7 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
             // if there are people in line, get in line
             if (loadQ.size > N_LOAD) {
               loadQ.enqueue(this)
-              director ! "weighWait"
+              waitOnDirector = true
             } else {
               waitOnDirector = false
             }
@@ -259,11 +259,18 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
            
             println("%s received message arriveWeigh".format(this))
             
+            releaseLoader
+            
             // set the arrival time
             arrivalTime = director.clock
             
             // if there are people in line, get in line
-            if (L_WEIGH > N_WEIGH) weighQ.enqueue(this) else waitOnDirector = false
+            if (L_WEIGH > N_WEIGH) {
+              weighQ.enqueue(this) 
+              waitOnDirector = true
+            } else {
+              waitOnDirector = false
+            }
             
           }
           
@@ -275,6 +282,7 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
           
           // travel 
           case "travel" => {
+            releaseWeigher
             println("%s received message travel".format(this))
             travel
           }
@@ -289,14 +297,6 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
           
           // wait for messages
           receive {
-          
-            case "loadWait" => {
-              println("%10s %10s %s is waiting in the load queue.".format(director.clock,"[action]", this))
-            }
-            
-            case "weighWait" => {
-              println("%10s %10s %s is waiting in the weigh queue.".format(director.clock,"[action]", this))
-            }
             
             // the normal case
             case "resume acting" => {
