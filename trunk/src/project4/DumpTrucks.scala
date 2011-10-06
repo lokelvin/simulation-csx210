@@ -19,6 +19,8 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
   // the director for this simulation
   implicit val director = new Director()
 
+  def getClock = director.clock
+  
   // The number of loading docks
   val N_LOAD = 2
   
@@ -40,6 +42,13 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
   // the weighing queue
   var weighQ : Queue[SimActor] = new Queue[SimActor]
 
+  // Duration Statistics
+  val LW_L_STAT = DurationStatistic(() => (loadQ.size, getClock))
+  val LS_L_STAT = DurationStatistic(() => (L_LOAD, getClock))
+  
+  val LW_W_STAT = DurationStatistic(() => (weighQ.size, getClock))
+  val LS_W_STAT = DurationStatistic(() => (L_WEIGH, getClock))
+  
   // The service distributions
   val μLoadingDist 	= Map[Int, Double](  5 -> 0.30,  10 -> 0.80,  15 -> 1.00)
   val μWeighingDist = Map[Int, Double]( 12 -> 0.70,  16 -> 1.00)
@@ -65,6 +74,20 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
     def act() {
       director.simulating = false
       director ! "resume directing"
+      
+      for (i <- 1 to 1000000000) {}
+      
+      println
+      println("STATISTICS")
+      println("-------------------------------------------------------------")
+      println("%10s | %10s | %10s | %20s |".format("STAT", "MIN", "MAX", "MEAN"))
+      println("-------------------------------------------------------------")
+      println("%10s | %10s | %10s | %20s |".format("LW_L", LW_L_STAT.min, LW_L_STAT.max, LW_L_STAT.mean))
+      println("%10s | %10s | %10s | %20s |".format("LS_L", LS_L_STAT.min, LS_L_STAT.max, LS_L_STAT.mean))
+      println("%10s | %10s | %10s | %20s |".format("LW_W", LW_W_STAT.min, LW_W_STAT.max, LW_W_STAT.mean))
+      println("%10s | %10s | %10s | %20s |".format("LS_W", LS_W_STAT.min, LS_W_STAT.max, LS_W_STAT.mean))
+      println("-------------------------------------------------------------")
+      
     }
   }
   
@@ -101,6 +124,11 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
       myLoader.idle = false
       director.schedule(this, DiscreteRand(μLoadingDist).toInt, actions.top)
       
+      LW_L_STAT.takeSample
+      LS_L_STAT.takeSample
+      LW_W_STAT.takeSample
+      LS_W_STAT.takeSample
+      
     }
     
     /**
@@ -120,6 +148,11 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
         director.schedule(actor, 0, actor.actions.top)
       }
       
+      LW_L_STAT.takeSample
+      LS_L_STAT.takeSample
+      LW_W_STAT.takeSample
+      LS_W_STAT.takeSample
+      
     }
     
     /**
@@ -132,6 +165,12 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
       weigher.idle = false
       myWeigher = weigher
       director.schedule(this, DiscreteRand(μWeighingDist).toInt, actions.top)
+      
+      LW_L_STAT.takeSample
+      LS_L_STAT.takeSample
+      LW_W_STAT.takeSample
+      LS_W_STAT.takeSample
+      
     }
     
     /**
@@ -150,12 +189,24 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
         println("%s dequeued for %s, waited %d".format(actor, actor.actions.top, director.clock-actor.asInstanceOf[DumpTruck].arrivalTime))
         director.schedule(actor,0,actor.actions.top)
       }
+      
+      LW_L_STAT.takeSample
+      LS_L_STAT.takeSample
+      LW_W_STAT.takeSample
+      LS_W_STAT.takeSample
+      
     }
     
     def travel {
       println("%s started travel".format(this))
       releaseWeigher
       director.schedule(this, DiscreteRand(μTravelDist).toInt, actions.top)
+      
+      LW_L_STAT.takeSample
+      LS_L_STAT.takeSample
+      LW_W_STAT.takeSample
+      LS_W_STAT.takeSample
+      
     }
     
     
