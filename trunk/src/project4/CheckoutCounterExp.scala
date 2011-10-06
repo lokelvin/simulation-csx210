@@ -27,7 +27,7 @@ object CheckoutCounterExp extends App with ProcessInteractionSimulation {
 
   //simulation variables
   tStart = 0
-  tStop  = 60
+  tStop  = 1000
   
   import scalation.random._
   
@@ -107,6 +107,17 @@ object CheckoutCounterExp extends App with ProcessInteractionSimulation {
       println("| %10s | %20s |".format("W",  (1 / μ) / (1 - ρ) ))
       
       println("-------------------------------------")
+      
+      println
+      println("VARIABLES")
+      println("----------------------------")
+      println("| %s = %20s |".format("λ", λ ))
+      println("| %s = %20s |".format("μ", μ ))
+      println("| %s = %20s |".format("ρ", ρ ))
+      println("----------------------------")
+      
+      
+      
   
     }
   }
