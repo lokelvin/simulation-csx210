@@ -111,11 +111,9 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
      */
     def useLoader {
       
-      println("%s started useLoader".format(this))
-      
       L_LOAD += 1
       
-      if (loaderA.idle == true) {
+      if (loaderA.idle) {
         myLoader = loaderA
       } else {
         myLoader = loaderB
@@ -135,8 +133,6 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
      * Release a loader
      */
     def releaseLoader {
-      
-      println("%s started releaseLoader".format(this))
       
       L_LOAD -= 1
       myLoader.idle = true
@@ -160,7 +156,7 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
      * @param cashier the cashier to be claimed
      */
     def useWeigher {
-      println("%s started useWeigher".format(this))
+      
       L_WEIGH += 1   
       weigher.idle = false
       myWeigher = weigher
@@ -177,8 +173,6 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
      * Release a weigher
      */
     def releaseWeigher {
-      
-      println("%s started releaseWeigher".format(this))
       
       L_WEIGH -= 1
       myWeigher.idle = true
@@ -198,7 +192,7 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
     }
     
     def travel {
-      println("%s started travel".format(this))
+
       releaseWeigher
       director.schedule(this, DiscreteRand(μTravelDist).toInt, actions.top)
       
