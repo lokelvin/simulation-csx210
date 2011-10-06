@@ -82,9 +82,9 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
       println("----------------------------------------------------------------------------")
       println("| %10s | %10s | %10s | %10s | %20s |".format("STAT", "MIN", "MAX", "SAMPLES", "MEAN"))
       println("----------------------------------------------------------------------------")
-      println("| %10s | %10s | %10s | %10s | %20s |".format("LW_L", LW_L_STAT.min, LW_L_STAT.max, LW_L_STAT.n, LW_L_STAT.mean))
+      println("| %10s | %10s | %10s | %10s | %20s |".format("LQ_L", LW_L_STAT.min, LW_L_STAT.max, LW_L_STAT.n, LW_L_STAT.mean))
       println("| %10s | %10s | %10s | %10s | %20s |".format("LS_L", LS_L_STAT.min, LS_L_STAT.max, LS_L_STAT.n, LS_L_STAT.mean))
-      println("| %10s | %10s | %10s | %10s | %20s |".format("LW_W", LW_W_STAT.min, LW_W_STAT.max, LW_W_STAT.n, LW_W_STAT.mean))
+      println("| %10s | %10s | %10s | %10s | %20s |".format("LQ_W", LW_W_STAT.min, LW_W_STAT.max, LW_W_STAT.n, LW_W_STAT.mean))
       println("| %10s | %10s | %10s | %10s | %20s |".format("LS_W", LS_W_STAT.min, LS_W_STAT.max, LS_W_STAT.n, LS_W_STAT.mean))
       println("----------------------------------------------------------------------------")
       
@@ -138,7 +138,7 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
       myLoader.idle = true
       
       // if there are still people in line, give the cashier to them immediately
-      if (loadQ.size > N_LOAD) {
+      if (loadQ.size > 0) {
         val actor = loadQ.dequeue
         println("%s dequeued for %s, waited %d".format(actor, actor.actions.top, director.clock-actor.asInstanceOf[DumpTruck].arrivalTime))
         director.schedule(actor, 0, actor.actions.top)
@@ -178,7 +178,7 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
       myWeigher.idle = true
       
       //if there are still people in line, give the cashier to them immediately
-      if (weighQ.size > N_WEIGH) {
+      if (weighQ.size > 0) {
         val actor = weighQ.dequeue
         println("%s dequeued for %s, waited %d".format(actor, actor.actions.top, director.clock-actor.asInstanceOf[DumpTruck].arrivalTime))
         director.schedule(actor,0,actor.actions.top)
@@ -239,12 +239,16 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
             arrivalTime = director.clock
             
             // if there are people in line, get in line
-            if (loadQ.size > N_LOAD) {
+            if (L_LOAD >= N_LOAD) {
+              println ("%s saw other trucks in the queue and decided to get into the queue.".format(this))
               loadQ.enqueue(this)
               waitOnDirector = true
             } else {
+              println ("%s saw NO other trucks in the queue and decided to get loaded.".format(this))
               waitOnDirector = false
             }
+            
+            
             
           }
           
@@ -265,7 +269,7 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
             arrivalTime = director.clock
             
             // if there are people in line, get in line
-            if (L_WEIGH > N_WEIGH) {
+            if (L_WEIGH >= N_WEIGH) {
               weighQ.enqueue(this) 
               waitOnDirector = true
             } else {
