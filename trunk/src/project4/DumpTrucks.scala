@@ -10,6 +10,10 @@ import scala.collection.mutable.Queue
  */
 object DumpTrucks extends App with ProcessInteractionSimulation {
 
+  // Assign values to the Simulation variables
+  tStart = 0
+  tStop  = 60
+  
   class Director() extends Model
 
   // the director for this simulation
@@ -31,10 +35,10 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
   var L_WEIGH = 0
   
   // the waiting line
-  var loadQ : Queue[DumpTruck] = new Queue[DumpTruck]
+  var loadQ : Queue[SimActor] = new Queue[SimActor]
   
   // the weighing queue
-  var weighQ : Queue[DumpTruck] = new Queue[DumpTruck]
+  var weighQ : Queue[SimActor] = new Queue[SimActor]
 
   // The service distributions
   val μLoadingDist 	= Map[Int, Double](  5 -> 0.30,  10 -> 0.80,  15 -> 1.00)
@@ -103,13 +107,12 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
     def releaseLoader {
       
       L_LOAD -= 1
-      
       myLoader.idle = true
       
       //if there are still people in line, give the cashier to them immediately
       if (L > N_LOAD) {
         val actor = loadQ.dequeue
-        println("%s dequeued for %s, waited %d".format(actor, actor.actions.top, director.clock-actor.arrivalTime))
+        println("%s dequeued for %s, waited %d".format(actor, actor.actions.top, director.clock-actor.asInstanceOf[DumpTruck].arrivalTime))
         director.schedule(actor,0,actor.actions.top)
       }
       
@@ -120,9 +123,7 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
      * @param cashier the cashier to be claimed
      */
     def useWeigher {
-      
-      L_WEIGH += 1
-      
+      L_WEIGH += 1   
       weigher.idle = false
       myWeigher = weigher
       director.schedule(this, DiscreteRand(μWeighingDist).toInt, actions.top)
@@ -134,15 +135,19 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
     def releaseWeigher {
       
       L_WEIGH -= 1
-      
       myWeigher.idle = true
       
       //if there are still people in line, give the cashier to them immediately
       if (L > N_WEIGH) {
         val actor = weighQ.dequeue
-        println("%s dequeued for %s, waited %d".format(actor, actor.actions.top, director.clock-actor.arrivalTime))
+        println("%s dequeued for %s, waited %d".format(actor, actor.actions.top, director.clock-actor.asInstanceOf[DumpTruck].arrivalTime))
         director.schedule(actor,0,actor.actions.top)
       }
+    }
+    
+    def travel {
+      releaseWeigher
+      director.schedule(this, DiscreteRand(μTravelDist).toInt, actions.top)
     }
     
     def act() {
@@ -168,11 +173,15 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
           }
           
           // load
-          case "load" => useLoader
+          case "load" => {
+            useLoader
+          }
           
           // arrive at weighing station
           case "arriveWeigh" => {
            
+            releaseLoader
+            
             // set the arrival time
             arrivalTime = director.clock
             
@@ -186,7 +195,8 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
           
           // travel 
           case "travel" => {
-            
+            releaseWeigher
+            travel
           }
           
           
@@ -202,7 +212,7 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
           
             // the normal case
             case "resume acting" => {
-       
+            	println("%10s %10s Person %d is about to %s".format(director.clock,"[action]", this.id, this.actions.top))
             }
             
             // the quit case
@@ -238,18 +248,17 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
   // Enqueue the three trucks in the loader queue
   loadQ.enqueue(DT4, DT5, DT6)
   
-  // Schedule truck 1 departing from the weigh station
-  director.schedule(DT1, DiscreteRand(μWeighingDist).toInt, DT1.actions.top)
+  // tell the director about your wait queues
+  director.waitQueues.enqueue(loadQ, weighQ)
   
-  // Schedule truck 2 and 3 departing from the loading stations
-  director.schedule(DT2, DiscreteRand(μWeighingDist).toInt, DT2.actions.top)
-  director.schedule(DT2, DiscreteRand(μWeighingDist).toInt, DT2.actions.top)
+  // schedule the first arrival
+  director.schedule(DT1, 0, DT1.actions.top)
 
   //schedule the stopper class at time 60
-  director.schedule(Stopper(),60,"Stop simulation")
+  director.schedule(Stopper(), tStop, "Stop simulation")
   
   //run
-  director.start()
+  director.start
   
   println("Print some statistics here")
 
