@@ -45,6 +45,10 @@ object CheckoutCounter extends App with ProcessInteractionSimulation {
   val WQ_STAT = DurationStatistic(() => (LW, getClock))
   val WS_STAT = DurationStatistic(() => (LS, getClock))
   val W_STAT  = DurationStatistic(() => (L, getClock)) 
+  
+  val LQ_STAT = Statistic[Double]()
+  val LS_STAT = Statistic[Double]()
+  val L_STAT  = Statistic[Double]()
 
   //the cashier
   case class Cashier(serviceTime : Map[Int,Double]) extends Entity {
@@ -66,6 +70,12 @@ object CheckoutCounter extends App with ProcessInteractionSimulation {
       println("STATISTICS")
       println("----------------------------------------------------------------------------")
       println("| %10s | %10s | %10s | %10s | %20s |".format("STAT", "MIN", "MAX", "SAMPLES", "MEAN"))
+      println("----------------------------------------------------------------------------")
+      
+      println("| %10s | %10s | %10s | %10s | %20s |".format("LQ_LOAD", LQ_STAT.min, LQ_STAT.max, LQ_STAT.n, LQ_STAT.mean))
+      println("| %10s | %10s | %10s | %10s | %20s |".format("LS_LOAD", LS_STAT.min, LS_STAT.max, LS_STAT.n, LS_STAT.mean))
+      println("| %10s | %10s | %10s | %10s | %20s |".format("L_LOAD", "n/a", "n/a", "n/a", L_STAT.mean))
+      
       println("----------------------------------------------------------------------------")
       println("| %10s | %10s | %10s | %10s | %20s |".format("WQ", WQ_STAT.min, WQ_STAT.max, WQ_STAT.n, WQ_STAT.mean))
       println("| %10s | %10s | %10s | %10s | %20s |".format("WS", WS_STAT.min, WS_STAT.max, WS_STAT.n, WS_STAT.mean))
@@ -119,6 +129,10 @@ object CheckoutCounter extends App with ProcessInteractionSimulation {
         WS_STAT.takeSample
         WQ_STAT.takeSample
         W_STAT.takeSample
+        
+        LQ_STAT.takeSample(LW)
+        LS_STAT.takeSample(LS)
+        L_STAT.takeSample(L)
         
         waitOnDirector = true
         //go through your script
