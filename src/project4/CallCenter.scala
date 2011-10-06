@@ -40,9 +40,9 @@ object CallCenter extends App with ProcessInteractionSimulation {
   def getClock = director.clock
   
   // Duration Statistics
-  val LW_STAT = DurationStatistic(() => (LW, getClock))
-  val LS_STAT = DurationStatistic(() => (LS, getClock))
-  val L_STAT  = DurationStatistic(() => (L, getClock)) 
+  val WQ_STAT = DurationStatistic(() => (LW, getClock))
+  val WS_STAT = DurationStatistic(() => (LS, getClock))
+  val W_STAT  = DurationStatistic(() => (L, getClock)) 
   
   //a telephone operator
   case class Operator(serviceTime : Map[Int,Double]) extends Entity {
@@ -93,9 +93,9 @@ object CallCenter extends App with ProcessInteractionSimulation {
       var waitOnDirector = true
          while (true) {
            
-           LS_STAT.takeSample
-           LW_STAT.takeSample
-           L_STAT.takeSample
+           WS_STAT.takeSample
+           WQ_STAT.takeSample
+           W_STAT.takeSample
            
            waitOnDirector = true
            actions.pop match {
@@ -157,9 +157,9 @@ object CallCenter extends App with ProcessInteractionSimulation {
 			      println("----------------------------------------------------------------------------")
 			      println("| %10s | %10s | %10s | %10s | %20s |".format("STAT", "MIN", "MAX", "SAMPLES", "MEAN"))
 			      println("----------------------------------------------------------------------------")
-			      println("| %10s | %10s | %10s | %10s | %20s |".format("LQ", LW_STAT.min, LW_STAT.max, LW_STAT.n, LW_STAT.mean))
-			      println("| %10s | %10s | %10s | %10s | %20s |".format("LS", LS_STAT.min, LS_STAT.max, LS_STAT.n, LS_STAT.mean))
-			      println("| %10s | %10s | %10s | %10s | %20s |".format("L", "n/a", "n/a", "n/a", L_STAT.mean))
+			      println("| %10s | %10s | %10s | %10s | %20s |".format("WQ", WQ_STAT.min, WQ_STAT.max, WQ_STAT.n, WQ_STAT.mean))
+			      println("| %10s | %10s | %10s | %10s | %20s |".format("WS", WS_STAT.min, WS_STAT.max, WS_STAT.n, WS_STAT.mean))
+			      println("| %10s | %10s | %10s | %10s | %20s |".format("W", "n/a", "n/a", "n/a", W_STAT.mean))
 			      println("----------------------------------------------------------------------------")
        
                 }

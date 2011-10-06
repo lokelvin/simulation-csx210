@@ -43,11 +43,11 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
   var weighQ : Queue[SimActor] = new Queue[SimActor]
 
   // Duration Statistics
-  val LW_L_STAT = DurationStatistic(() => (loadQ.size, getClock))
-  val LS_L_STAT = DurationStatistic(() => (L_LOAD, getClock))
+  val WQ_L_STAT = DurationStatistic(() => (loadQ.size, getClock))
+  val WS_L_STAT = DurationStatistic(() => (L_LOAD, getClock))
   
-  val LW_W_STAT = DurationStatistic(() => (weighQ.size, getClock))
-  val LS_W_STAT = DurationStatistic(() => (L_WEIGH, getClock))
+  val WQ_W_STAT = DurationStatistic(() => (weighQ.size, getClock))
+  val WS_W_STAT = DurationStatistic(() => (L_WEIGH, getClock))
   
   // The service distributions
   val μLoadingDist 	= Map[Int, Double](  5 -> 0.30,  10 -> 0.80,  15 -> 1.00)
@@ -82,12 +82,12 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
       println("----------------------------------------------------------------------------")
       println("| %10s | %10s | %10s | %10s | %20s |".format("STAT", "MIN", "MAX", "SAMPLES", "MEAN"))
       println("----------------------------------------------------------------------------")
-      println("| %10s | %10s | %10s | %10s | %20s |".format("LQ_LOAD", LW_L_STAT.min, LW_L_STAT.max, LW_L_STAT.n, LW_L_STAT.mean))
-      println("| %10s | %10s | %10s | %10s | %20s |".format("LS_LOAD", LS_L_STAT.min, LS_L_STAT.max, LS_L_STAT.n, LS_L_STAT.mean))
-      println("| %10s | %10s | %10s | %10s | %20s |".format("L_LOAD", "n/a", "n/a", "n/a", LW_L_STAT.mean + LS_L_STAT.mean))
-      println("| %10s | %10s | %10s | %10s | %20s |".format("LQ_WEIGH", LW_W_STAT.min, LW_W_STAT.max, LW_W_STAT.n, LW_W_STAT.mean))
-      println("| %10s | %10s | %10s | %10s | %20s |".format("LS_WEIGH", LS_W_STAT.min, LS_W_STAT.max, LS_W_STAT.n, LS_W_STAT.mean))
-      println("| %10s | %10s | %10s | %10s | %20s |".format("L_WEIGH", "n/a", "n/a", "n/a", LW_W_STAT.mean + LS_W_STAT.mean))
+      println("| %10s | %10s | %10s | %10s | %20s |".format("WQ_LOAD", WQ_L_STAT.min, WQ_L_STAT.max, WQ_L_STAT.n, WQ_L_STAT.mean))
+      println("| %10s | %10s | %10s | %10s | %20s |".format("WS_LOAD", WS_L_STAT.min, WS_L_STAT.max, WS_L_STAT.n, WS_L_STAT.mean))
+      println("| %10s | %10s | %10s | %10s | %20s |".format("W_LOAD", "n/a", "n/a", "n/a", WQ_L_STAT.mean + WS_L_STAT.mean))
+      println("| %10s | %10s | %10s | %10s | %20s |".format("WQ_WEIGH", WQ_W_STAT.min, WQ_W_STAT.max, WQ_W_STAT.n, WQ_W_STAT.mean))
+      println("| %10s | %10s | %10s | %10s | %20s |".format("WS_WEIGH", WS_W_STAT.min, WS_W_STAT.max, WS_W_STAT.n, WS_W_STAT.mean))
+      println("| %10s | %10s | %10s | %10s | %20s |".format("W_WEIGH", "n/a", "n/a", "n/a", WQ_W_STAT.mean + WS_W_STAT.mean))
       println("----------------------------------------------------------------------------")
       
     }
@@ -202,10 +202,10 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
       
       loop {
         
-        LW_L_STAT.takeSample
-        LS_L_STAT.takeSample
-        LW_W_STAT.takeSample
-        LS_W_STAT.takeSample
+        WQ_L_STAT.takeSample
+        WS_L_STAT.takeSample
+        WQ_W_STAT.takeSample
+        WS_W_STAT.takeSample
         
         waitOnDirector = true
         

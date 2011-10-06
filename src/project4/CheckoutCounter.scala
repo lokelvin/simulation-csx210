@@ -3,6 +3,7 @@ package project4
 import collection.mutable.Queue
 import simulation.Entity
 import simulation.process.{SimActor, Model, ProcessInteractionSimulation}
+import simulation.stat._
 
 /**
  * Created by IntelliJ IDEA.
@@ -35,6 +36,15 @@ object CheckoutCounter extends App with ProcessInteractionSimulation {
 
   //number of customers in the system
   var L = 0
+  def LW = waitQ.size
+  def LS = if (L > N_SERVERS) N_SERVERS else L
+  
+  def getClock = director.clock
+  
+  // Duration Statistics
+  val WQ_STAT = DurationStatistic(() => (LW, getClock))
+  val WS_STAT = DurationStatistic(() => (LS, getClock))
+  val W_STAT  = DurationStatistic(() => (L, getClock)) 
 
   //the cashier
   case class Cashier(serviceTime : Map[Int,Double]) extends Entity {
@@ -46,8 +56,23 @@ object CheckoutCounter extends App with ProcessInteractionSimulation {
   //the stopping "event"/process which kills the system
   case class Stopper() extends SimActor {
     def act() {
+      
       director.simulating = false
       director ! "resume directing"
+      
+      for (i <- 1 to 1000000000) {}
+      
+      println
+      println("STATISTICS")
+      println("----------------------------------------------------------------------------")
+      println("| %10s | %10s | %10s | %10s | %20s |".format("STAT", "MIN", "MAX", "SAMPLES", "MEAN"))
+      println("----------------------------------------------------------------------------")
+      println("| %10s | %10s | %10s | %10s | %20s |".format("WQ", WQ_STAT.min, WQ_STAT.max, WQ_STAT.n, WQ_STAT.mean))
+      println("| %10s | %10s | %10s | %10s | %20s |".format("WS", WS_STAT.min, WS_STAT.max, WS_STAT.n, WS_STAT.mean))
+      println("| %10s | %10s | %10s | %10s | %20s |".format("W", "n/a", "n/a", "n/a", W_STAT.mean))
+      println("----------------------------------------------------------------------------")
+   
+      
     }
   }
 
@@ -90,6 +115,11 @@ object CheckoutCounter extends App with ProcessInteractionSimulation {
     def act() {
       var waitOnDirector = true
       while (true) {
+        
+        WS_STAT.takeSample
+        WQ_STAT.takeSample
+        W_STAT.takeSample
+        
         waitOnDirector = true
         //go through your script
         actions.pop match {
