@@ -61,7 +61,7 @@ object CallCenter extends App with ProcessInteractionSimulation {
   //a caller in this simulation
   case class caller(callerNumber : Int) extends SimActor() {
     //to be set upon arrival
-    var arrivalTime : Int = 0
+    var arrivalTime : Double = 0.0
 
     //the 'script' for this actor
     actions.push("leave","usePhone","arrive")

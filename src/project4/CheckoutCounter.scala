@@ -89,7 +89,7 @@ object CheckoutCounter extends App with ProcessInteractionSimulation {
   //the Customer
   case class Customer(customerNumber : Int) extends SimActor {
     //to be set upon arrival
-    var arrivalTime = 0
+    var arrivalTime : Double = 0.0
     //who is my cashier?
     var myCashier : Cashier = null
 
