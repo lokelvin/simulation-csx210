@@ -4,7 +4,6 @@ import simulation._
 import simulation.process._
 import simulation.stat._
 import scala.collection.mutable.Queue
-import project4.CallCenter.Director
 
 /** An example simulation of a Dump Truck simulation using event scheduling.
  *  @author mepcotterell@gmail.com
@@ -28,19 +27,16 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
   // the weighing queue
   var weighQ : Queue[DumpTruck] = new Queue[DumpTruck]
   
-  // The service distributions
-  val μLoadingDist 	= Map[Int, Double](  5 -> 0.30,  10 -> 0.80,  15 -> 1.00)
-  val μWeighingDist = Map[Int, Double]( 12 -> 0.70,  16 -> 1.00)
-  val μTravelDist 	= Map[Int, Double]( 40 -> 0.40,  60 -> 0.70,  80 -> 0.90, 100 -> 1.00)
-  
-  case class Loader () extends SimActor {
+
+  class Loader () extends SimActor {
     var idle = true
-    def act() {}
+    def act () {}
   }
   
-  case class Weigher (id: Int) extends SimActor {
+  class Weigher (id: Int) extends SimActor {
     var idle = true
-    def act() {}
+    def act() {
+    } 
   }
   
   /** Dump Truck Actor
@@ -64,7 +60,7 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
     def useLoader(loader : Loader) {
       loader.idle = false
       myLoader = loader
-      director.schedule(this, DiscreteRand(μLoadingDist).toInt, actions.top)
+      //director.schedule(this, DiscreteRand(μLoadingDist).toInt, actions.top)
     }
     
     def act() {
@@ -110,7 +106,7 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
           
             // the normal case
             case "resume acting" => {
-              println("%10s %10s Person %d is about to %s".format(director.clock,"[action]",this.customerNumber,this.actions.top))
+       
             }
             
             // the quit case
@@ -122,7 +118,9 @@ object DumpTrucks extends App with ProcessInteractionSimulation {
             
           } // if (waitOnDirector) 
           
-       } // loop  
+        } // recieve
+        
+      } // loop  
       
     } // def act()
       
