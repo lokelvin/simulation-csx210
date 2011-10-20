@@ -1,6 +1,7 @@
 package project4
 
 import collection.mutable.Queue
+
 import simulation.Entity
 import simulation.process.{SimActor, Model, ProcessInteractionSimulation}
 import simulation.stat._
@@ -36,26 +37,24 @@ object CheckoutCounterExp extends App with ProcessInteractionSimulation {
   
   val ρ = λ / μ
 
-   def log(x: Double): Double = java.lang.Math.log(x)
-  def exp(n:Double) = -(1/n)*log(scala.util.Random.nextDouble())
-
-  //def λDistribution = exp(1.0 / λ)
-  //def μDistribution = exp(1.0 / μ)
-
+  def log (x: Double): Double = java.lang.Math.log(x)
+  
+  def exp (mean: Double) = -mean * log(1.0 - util.Random.nextDouble())
+  
   //number of customers that have been through the system
   var nCustomers = 0
 
   //number of customers in the system
   var L = 0
-  def LW = waitQ.size
+  def LQ = waitQ.size
   def LS = if (L > N_SERVERS) N_SERVERS else L
   
   def getClock = director.clock
   
   // Duration Statistics
-  val WQ_STAT = DurationStatistic(() => (LW, getClock))
-  val WS_STAT = DurationStatistic(() => (LS, getClock))
-  val W_STAT  = DurationStatistic(() => (L, getClock)) 
+  val WQ_STAT = DurationStatistic[Double](() => (LQ, getClock))
+  val WS_STAT = DurationStatistic[Double](() => (LS, getClock))
+  val W_STAT  = DurationStatistic[Double](() => (L, getClock)) 
   
   val LQ_STAT = Statistic[Double]()
   val LS_STAT = Statistic[Double]()
@@ -67,7 +66,7 @@ object CheckoutCounterExp extends App with ProcessInteractionSimulation {
         WQ_STAT.takeSample
         W_STAT.takeSample
 
-        LQ_STAT.takeSample(LW)
+        LQ_STAT.takeSample(LQ)
         LS_STAT.takeSample(LS)
         L_STAT.takeSample(L)
   }
@@ -152,7 +151,7 @@ object CheckoutCounterExp extends App with ProcessInteractionSimulation {
     def useCashier(cashier : Cashier) {
       cashier.idle = false
       myCashier = cashier
-      director.schedule(this, exp(1/cashier.serviceTime).toInt,actions.top)
+      director.schedule(this, exp(1/cashier.serviceTime),actions.top)
     }
 
     /**
@@ -164,7 +163,7 @@ object CheckoutCounterExp extends App with ProcessInteractionSimulation {
       if ( L > N_SERVERS ) {
         val actor = waitQ.dequeue().asInstanceOf[Customer]
         println("%s dequeued for %s, waited %s".format(actor,actor.actions.top,director.clock-actor.arrivalTime))
-        director.schedule(actor,0,actor.actions.top)
+        director.schedule(actor, 0, actor.actions.top)
       }
     }
 
@@ -187,7 +186,7 @@ object CheckoutCounterExp extends App with ProcessInteractionSimulation {
             //increment the number of customers through the system
             nCustomers = nCustomers + 1
             //schedule another arrival
-            director.schedule(Customer(nCustomers), exp(1/λ).toInt, "arrive")
+            director.schedule(Customer(nCustomers), exp(1/λ), "arrive")
             //increment the number of customers in the system
             L = L + 1
             //if there are people in line, get in line
