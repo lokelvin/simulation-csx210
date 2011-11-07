@@ -81,6 +81,7 @@ case class DurationStatistic [A: Numeric] (getValues: () => (A, Double)) extends
     // get the current (value, clock time) tuple
     val (x, t) = getValues()
 
+
     // how long did this sample last
     val duration = t - lastTime
     
