@@ -24,11 +24,11 @@ object CheckoutCounterExp extends App with ProcessInteractionSimulation {
   val N_SERVERS = 1
 
   //the waiting line
-  var waitQ : Queue[SimActor] =  new Queue[SimActor]
+  var waitQ =  new Queue[Customer]
 
   //simulation variables
   tStart = 0
-  tStop  = 1000
+  tStop  = 2000
   
   import scalation.random._
   
@@ -39,7 +39,7 @@ object CheckoutCounterExp extends App with ProcessInteractionSimulation {
 
   def log (x: Double): Double = java.lang.Math.log(x)
   
-  def exp (mean: Double) = -mean * log(1.0 - util.Random.nextDouble())
+  def exp (mean: Double) = -mean * log(util.Random.nextDouble)
   
   //number of customers that have been through the system
   var nCustomers = 0
@@ -51,27 +51,13 @@ object CheckoutCounterExp extends App with ProcessInteractionSimulation {
   
   def getClock = director.clock
   
-  // Duration Statistics
-  val WQ_STAT = DurationStatistic[Double](() => (LQ, getClock))
-  val WS_STAT = DurationStatistic[Double](() => (LS, getClock))
-  val W_STAT  = DurationStatistic[Double](() => (L, getClock)) 
+  var waitTimes = 0.
+  var serviceTimes = 0.
+  var servedCustomers = 0
   
-  val LQ_STAT = Statistic[Double]()
-  val LS_STAT = Statistic[Double]()
-  val L_STAT  = Statistic[Double]()
-
-  def takeSamples {
-
-        WS_STAT.takeSample
-        WQ_STAT.takeSample
-        W_STAT.takeSample
-
-        LQ_STAT.takeSample(LQ)
-        LS_STAT.takeSample(LS)
-        L_STAT.takeSample(L)
-  }
+  
   //the cashier
-  case class Cashier(serviceTime : Double) extends Entity {
+  case class Cashier(serviceRate : Double) extends Entity {
     var idle = true
   }
 
@@ -86,7 +72,7 @@ object CheckoutCounterExp extends App with ProcessInteractionSimulation {
       
       for (i <- 1 to 10000) {}
       
-      println
+      /*println
       println("STATISTICS")
       println("----------------------------------------------------------------------------")
       println("| %10s | %10s | %10s | %10s | %20s |".format("STAT", "MIN", "MAX", "SAMPLES", "MEAN"))
@@ -100,7 +86,7 @@ object CheckoutCounterExp extends App with ProcessInteractionSimulation {
       println("| %10s | %10s | %10s | %10s | %20s |".format("WQ", WQ_STAT.min, WQ_STAT.max, WQ_STAT.n, WQ_STAT.mean))
       println("| %10s | %10s | %10s | %10s | %20s |".format("WS", WS_STAT.min, WS_STAT.max, WS_STAT.n, WS_STAT.mean))
       println("| %10s | %10s | %10s | %10s | %20s |".format("W", "n/a", "n/a", "n/a", W_STAT.mean))
-      println("----------------------------------------------------------------------------")
+      println("----------------------------------------------------------------------------") */
    
       println
       println("MARKVOVIAN CALCULATED STATISTICS")
@@ -128,7 +114,16 @@ object CheckoutCounterExp extends App with ProcessInteractionSimulation {
       println("| %s = %20s |".format("ρ", ρ ))
       println("----------------------------")
       
+      println
+      println("| %10s | %20s |".format("STAT", "MEAN"))
       
+      println("| %10s | %20s |".format("LQ", λ * (waitTimes / servedCustomers)))
+      println("| %10s | %20s |".format("LS", λ * (serviceTimes / servedCustomers)))
+      println("| %10s | %20s |".format("L", λ * ((waitTimes / servedCustomers) + (serviceTimes / servedCustomers))))
+      
+      println("| %10s | %20s |".format("WQ", (waitTimes / servedCustomers)))
+      println("| %10s | %20s |".format("WS", (serviceTimes / servedCustomers)))
+      println("| %10s | %20s |".format("W", (waitTimes / servedCustomers) + (serviceTimes / servedCustomers)))
       
   
     }
@@ -151,7 +146,15 @@ object CheckoutCounterExp extends App with ProcessInteractionSimulation {
     def useCashier(cashier : Cashier) {
       cashier.idle = false
       myCashier = cashier
-      director.schedule(this, exp(1/cashier.serviceTime),actions.top)
+      
+      val stime = exp(1.0/cashier.serviceRate)
+      val waitTime = director.clock - arrivalTime
+      
+      serviceTimes += stime
+      waitTimes += waitTime
+      servedCustomers += 1
+      
+      director.schedule(this, stime)//,actions.top)
     }
 
     /**
@@ -161,9 +164,9 @@ object CheckoutCounterExp extends App with ProcessInteractionSimulation {
       myCashier.idle = true
       //if there are still people in line, give the cashier to them immediately
       if ( L > N_SERVERS ) {
-        val actor = waitQ.dequeue().asInstanceOf[Customer]
-        println("%s dequeued for %s, waited %s".format(actor,actor.actions.top,director.clock-actor.arrivalTime))
-        director.schedule(actor, 0, actor.actions.top)
+        val actor = waitQ.dequeue()
+        println("%s dequeued waited %s".format(actor,director.clock-actor.arrivalTime))
+        director.schedule(actor, 0)
       }
     }
 
@@ -171,79 +174,44 @@ object CheckoutCounterExp extends App with ProcessInteractionSimulation {
      * Wait for messages from the director to continue through the loop
      */
     def act() {
-      var waitOnDirector = true
-      while (true) {
-
-        
-        waitOnDirector = true
-        //go through your script
-        actions.pop match {
-            //arrival
-          case "arrive" => {
-
-            //set the arrival time
-            arrivalTime = director.clock
-            //increment the number of customers through the system
-            nCustomers = nCustomers + 1
-            //schedule another arrival
-            director.schedule(Customer(nCustomers), exp(1/λ), "arrive")
-            //increment the number of customers in the system
-            L = L + 1
+            arrivalTime = director.clock             //set the arrival time
+            
+            nCustomers +=  1 //increment the number of customers through the system
+            
+            director.schedule(Customer(nCustomers), exp(1.0/λ)) //schedule another arrival
+            
+            L += 1 //increment the number of customers in the system
+            
             //if there are people in line, get in line
             if (L > N_SERVERS) {
               waitQ.enqueue(this)
+              director! "resume directing"
+              receive{case "resume acting" => }
             }
-            else {
-              waitOnDirector = false
-            }
-          }
-            //checking out
-          case "checkout" => {
-            assert(cashier.idle,"Error: Cashier should be idle upon entry of 'Checkout' state")
+            
+//            assert(cashier.idle,"Error: Cashier should be idle upon entry of 'Checkout' state")
+            
             useCashier(cashier)
-          }
-            //leaving the store
-          case "leave" => {
-            //give up the cashier
-            releaseCashier()
-            //decrement the number of customers in the system
-            L = L - 1
-            //relinquish control
-            director ! "resume directing"
-            //kill yourself
-            exit()
-          }
-        }
-        takeSamples
-        if (waitOnDirector)
-        {
-          //relinquish control
-          director ! "resume directing"
-          //wait for messages
-          receive {
-            //the normal case
-            case "resume acting" => {
-              println("%10s %10s Person %d is about to %s".format(director.clock,"[action]",this.customerNumber,this.actions.top))
-            }
-              //the quit case
-            case "quit" =>
-            {
-              //kill yourself
-              exit()
-            }
-          }
-        }
-    }
-  }
-  }
+            
+            director! "resume directing"
+            receive{case "resume acting" =>}
 
-  //tell the director about your wait queues
-  director.waitQueues.enqueue(waitQ)
+            releaseCashier()
+            
+            L -= 1 //decrement the number of customers in the system
+            
+            director ! "resume directing" //relinquish control
+            
+        }
+   }
+  
+
+  
   //schedule the first arrival at time 0
   val actor = Customer(nCustomers)
-  director.schedule(actor,0,actor.actions.top)
+  director.schedule(actor,0)//,actor.actions.top)
   //schedule the stopper class at time 60
-  director.schedule(Stopper(),tStop,"Stop simulation")
+  director.schedule(Stopper(),tStop)//,"Stop simulation")
   //run
   director.start()
 
