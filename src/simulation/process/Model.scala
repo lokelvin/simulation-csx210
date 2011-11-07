@@ -31,7 +31,7 @@ abstract class Model extends Actor {
 
     // print a nice message
     Console.BLUE
-    println("%10s %10s Scheduled %s for t = %s".format(clock, "[action]", actor, actor.actTime))
+//    println("%10s %10s Scheduled %s for t = %s".format(clock, "[action]", actor, actor.actTime))
     Console.RESET
 
   } // def schedule
@@ -56,11 +56,7 @@ abstract class Model extends Actor {
       //wait for the actor to rescind control
       receive {case "resume directing" => {}}
     }
-
-    //kill child processes so we can quit
-    while (!futureEvents.isEmpty) {
-      futureEvents.dequeue() ! "quit"
-    }
+    exit()
     finished = true
   }
   

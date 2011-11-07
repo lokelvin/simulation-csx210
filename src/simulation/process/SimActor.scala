@@ -18,7 +18,7 @@ abstract class SimActor (implicit model: Model) extends Actor with Ordered[SimAc
 
   def yieldToDirector() {
     model ! "resume directing"
-    receive {case "resume acting" => {println("I'll resume")}}
+    receive {case "resume acting" => }
   }
   
 } // SimActor
