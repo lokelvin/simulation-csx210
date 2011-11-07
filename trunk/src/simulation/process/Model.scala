@@ -15,8 +15,6 @@ abstract class Model extends Actor {
   var simulating = true
 
   var finished = false
-  //wait Queues used in the simulation, keep track of them so we can kill the actors within
-  val waitQueues = Queue.empty[Queue[SimActor]]
 
 
   /**
@@ -25,7 +23,7 @@ abstract class Model extends Actor {
    * @param delay the distance in the future to schedule this actor
    * @param nextState the state the actor will be entering
    */
-  def schedule (actor : SimActor, delay: Double, nextState : String) {
+  def schedule (actor : SimActor, delay: Double) {//), nextState : String) {
     //Set the actor's activation time
     actor.actTime = clock + delay
     // add the event to the list
@@ -33,7 +31,7 @@ abstract class Model extends Actor {
 
     // print a nice message
     Console.BLUE
-    println("%10s %10s Scheduled %s for t = %s for %s".format(clock, "[action]", actor, actor.actTime,nextState))
+    println("%10s %10s Scheduled %s for t = %s".format(clock, "[action]", actor, actor.actTime))
     Console.RESET
 
   } // def schedule
@@ -62,11 +60,6 @@ abstract class Model extends Actor {
     //kill child processes so we can quit
     while (!futureEvents.isEmpty) {
       futureEvents.dequeue() ! "quit"
-    }
-    while (!waitQueues.isEmpty) {
-      val queue = waitQueues.dequeue()
-      while (!queue.isEmpty)
-        queue.dequeue() ! "quit"
     }
     finished = true
   }

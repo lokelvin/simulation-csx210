@@ -12,7 +12,7 @@ abstract class SimActor (implicit model: Model) extends Actor with Ordered[SimAc
   def simulating = {model.simulating}
   
     // mandatory implementation of Ordered.compare
-  def compare (that: SimActor) = (that.actTime - this.actTime).toInt
+  def compare (that: SimActor) = that.actTime compare this.actTime
 
   def nowActing = {yetToAct = false}
 
