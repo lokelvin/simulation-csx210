@@ -1,26 +1,31 @@
 
-/**:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- * @author  John Miller
- * @version 1.0
- * @date    Mon Sep  7 15:05:06 EDT 2009
- * @see     LICENSE (MIT style license file).
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+/** @author  John Miller
+ *  @version 1.0
+ *  @date    Mon Sep  7 15:05:06 EDT 2009
+ *  @see     LICENSE (MIT style license file).
  */
 
 package scalation.util
 
-/**:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- * The Monitor trait is used to trace the actions/events in the models.
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+/** The Monitor object is used to trace the actions/events in the models.
  */
-trait Monitor
+object Monitor
 {
-    /** Flag indicating whether tracing is on
+    /** Flag indicating whether tracing is on (initially on)
      */
     private var tracing = true 
 
-    /**:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-     * Toggle the tracing flag.
+    //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    /** Turn tracing off.
      */
-    def toggle () { ! tracing }
+    def traceOff () { tracing = false }
+
+    //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    /** Turn tracing back on.
+     */
+    def traceOn () { tracing = true }
 
     /**:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
      * Trace an action/event.
@@ -32,9 +37,9 @@ trait Monitor
     def trace (who: Identity, what: String, whom: Identity, when: Double)
     {
         if (tracing) {
-            println (who.me + " " + what + " " + whom.me + " at time " + when + ".")
+            println ("+ " + who.me + " " + what + " " + whom.me + " at time " + when + ".")
         } // if
     } // trace
 
-} // Monitor trait
+} // Monitor object
 
