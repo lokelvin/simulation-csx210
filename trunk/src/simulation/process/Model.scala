@@ -4,7 +4,12 @@ package process
 import scala.actors._
 import scala.actors.Actor._
 import event.Event
+import scalation.scala2d._
 import collection.mutable.{Queue, PriorityQueue}
+import swing.{MainFrame, Panel}
+import swing.RichWindow._
+import swing.Window._
+import java.awt.{Graphics2D, Dimension}
 
 abstract class Model extends Actor {
   //the system clock
@@ -40,6 +45,7 @@ abstract class Model extends Actor {
    * Pull actors off of the FEL while the FEL is not empty and we are still simulating
    */
   def act() {
+
     while (simulating && !futureEvents.isEmpty) {
       //the next actor to act
       val actor = futureEvents.dequeue()

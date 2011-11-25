@@ -14,7 +14,7 @@ import simulation.stat._
  * To change this template use File | Settings | File Templates.
  */
 
-object CheckoutCounterExp extends App with ProcessInteractionSimulation {
+object Subway extends App with ProcessInteractionSimulation {
   class Director() extends Model
 
   //the director
@@ -31,7 +31,7 @@ object CheckoutCounterExp extends App with ProcessInteractionSimulation {
 
   //simulation variables
   tStart = 0
-  tStop  =60
+  tStop  =10000
   
   import scalation.random._
   
@@ -312,9 +312,9 @@ object CheckoutCounterExp extends App with ProcessInteractionSimulation {
             
 
 
-             println(director.clock+": "+this+" exiting")
+             //println(director.clock+": "+this+" exiting")
             director ! "resume directing" //relinquish control
-            
+            exit()
         }
    }
   
