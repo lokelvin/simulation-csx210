@@ -5,6 +5,8 @@ import collection.mutable.Queue
 import simulation.Entity
 import simulation.process.{SimActor, Model, ProcessInteractionSimulation}
 import simulation.stat._
+import java.util.ArrayList
+import java.awt.geom.Point2D
 
 /**
  * Created by IntelliJ IDEA.
@@ -25,16 +27,34 @@ object Subway extends App with ProcessInteractionSimulation {
   val N_SERVERS_LINE = 2
   val N_SERVERS_REG = 1
 
+  //The animation entities
+  val source =  new Source()
+  val line1 = new Service(200,25,N_SERVERS_LINE)
+  val line1Q = new WaitQueue(line1)
+  val source2Line = new Path(source,line1Q)
+  val register = new Service(400,35,N_SERVERS_REG)
+  val registerQ = new WaitQueue(register)
+  val line2Register = new Path(line1,registerQ)
+  val split = new Split(500,50)
+  val register2Split = new Path(register,split)
+  val door = new Source(600,30)
+  val split2Door = new Path(split,door)
+  val lobby = new Lobby(250,150,60,100)
+  val split2Lobby = new Path(split,lobby)
+  val lobby2Door = new Path(lobby,door)
+
   //the waiting lines
-  var waitQLine =  new Queue[Customer]
-  var waitQReg =  new Queue[Customer]
+  var waitQLine =  new Queue[SimCustomer]
+  var waitQReg =  new Queue[SimCustomer]
 
   //simulation variables
   tStart = 0
   tStop  =10000
   
   import scalation.random._
-  
+
+
+  //rates
   λ      = 10.0
 
   val μ_1     = 7.0
@@ -48,6 +68,7 @@ object Subway extends App with ProcessInteractionSimulation {
   val ρ1 = λ / μ_12
   val ρ2 = λ2 / μ_3
 
+  //Statistics
   def factorial(factorial : Double) : Double = {
     var iFactorial = factorial
     if (factorial.intValue()==0)
@@ -66,6 +87,7 @@ object Subway extends App with ProcessInteractionSimulation {
     sum += (math.pow(N_SERVERS_LINE*ρ1,N_SERVERS_LINE)*(1/factorial(N_SERVERS_LINE))*(1/1-ρ1))
     return math.pow(sum,-1)
   }
+
   def probAllSrvBsy : Double = (math.pow(N_SERVERS_LINE*ρ1,N_SERVERS_LINE)*P0)/(factorial(N_SERVERS_LINE)*(1-ρ1))
 
   def L_LINE : Double = N_SERVERS_LINE*ρ1 + LQ_LINE
@@ -80,7 +102,6 @@ object Subway extends App with ProcessInteractionSimulation {
   //number of customers that have been through the system
   var nCustomers = 0
 
-
   def getClock = director.clock
   
   var waitTimesLine = 0.
@@ -93,17 +114,17 @@ object Subway extends App with ProcessInteractionSimulation {
   
   
   //the cashier
-  case class Server(serviceRate : Double, waitQ : Queue[Customer]) extends Entity {
+  case class Server(serviceRate : Double, waitQ : Queue[SimCustomer], val serverNo : Int, val service : Service) extends Entity {
     var idle = true
   }
 
-  case class Cashier(serviceRate : Double, waitQ : Queue[Customer]) extends Entity {
+  case class Cashier(serviceRate : Double, waitQ : Queue[SimCustomer], val service : Service) extends Entity {
     var idle = true
   }
 
-  val lineWorker1 = Server(μ_1,waitQLine)
-  val lineWorker2 = Server(μ_2,waitQLine)
-  val cashier = Cashier(μ_3,waitQReg)
+  val lineWorker1 = Server(μ_1,waitQLine,1,line1)
+  val lineWorker2 = Server(μ_2,waitQLine,2,line1)
+  val cashier = Cashier(μ_3,waitQReg,register)
 
   //the stopping "event"/process which kills the system
   case class Stopper() extends SimActor {
@@ -177,7 +198,7 @@ object Subway extends App with ProcessInteractionSimulation {
       println("| %10s | %20s |".format("WQ", (ρ2 / μ_3) / (1 - ρ2) ))
       println("| %10s | %20s |".format("WS", (1 / μ_3)           ))
       println("| %10s | %20s |".format("W",  (1 / μ_3) / (1 - ρ2) ))
-
+      println("-------------------------------------")
 
       
       println
@@ -199,7 +220,9 @@ object Subway extends App with ProcessInteractionSimulation {
   }
 
   //the Customer
-  case class Customer(customerNumber : Int) extends SimActor {
+  case class SimCustomer(customerNumber : Int) extends SimActor {
+    val customer : Customer = new Customer(source)
+
     //to be set upon arrival
     var arrivalTime = 0.0
     //who is my server?
@@ -213,6 +236,9 @@ object Subway extends App with ProcessInteractionSimulation {
       server.idle = false
       myServer = server
 
+      if (ANIMATING)
+        customer.setPosition(server.service.getCenterOfServer(customer.size,server.serverNo))
+
       val stime = exp(1.0/myServer.serviceRate)
       val waitTime = director.clock - arrivalTime
 
@@ -225,6 +251,9 @@ object Subway extends App with ProcessInteractionSimulation {
 
     def useCashier()    {
         cashier.idle = false
+
+        if (ANIMATING)
+          customer.setPosition(cashier.service.getCenterOfServer(customer.size,1))
 
         val stime = exp(1.0/cashier.serviceRate)
         val waitTime = director.clock - arrivalTime
@@ -247,6 +276,9 @@ object Subway extends App with ProcessInteractionSimulation {
         val actor = myServer.waitQ.dequeue()
         director.schedule(actor, 0)
       }
+
+      if (ANIMATING)
+        customer.setPosition(myServer.service.getCenter(customer.size))
     }
 
     def releaseCashier()   {
@@ -257,6 +289,9 @@ object Subway extends App with ProcessInteractionSimulation {
           val actor = cashier.waitQ.dequeue()
           director.schedule(actor, 0)
         }
+
+        if (ANIMATING)
+          customer.setPosition(cashier.service.getCenter(customer.size))
     }
 
 
@@ -268,14 +303,22 @@ object Subway extends App with ProcessInteractionSimulation {
             
             nCustomers +=  1 //increment the number of customers through the system
             
-            director.schedule(Customer(nCustomers), exp(1.0/λ)) //schedule another arrival
-            
+            director.schedule(SimCustomer(nCustomers), exp(1.0/λ)) //schedule another arrival
 
+            if (ANIMATING)
+            {
+              customerList.add(customer)
+              customer.move(source2Line)
+            }
             
             //if there are people in line, get in line
             if (!lineWorker1.idle && !lineWorker2.idle) {
               waitQLine.enqueue(this)
+              if (ANIMATING)
+                line1Q.enterQueue()
               yieldToDirector()
+              if (ANIMATING)
+                line1Q.leaveQueue()
             }
 
             if (lineWorker1.idle)
@@ -292,11 +335,20 @@ object Subway extends App with ProcessInteractionSimulation {
 
             releaseServer()
 
+            if (ANIMATING)
+              customer.move(line2Register)
+
             if (!cashier.idle)
             {
               waitQReg.enqueue(this)
+              if (ANIMATING)
+                registerQ.enterQueue()
               yieldToDirector()
+              if (ANIMATING)
+                registerQ.leaveQueue()
             }
+
+
 
             if (cashier.idle)
               useCashier()
@@ -309,7 +361,29 @@ object Subway extends App with ProcessInteractionSimulation {
             yieldToDirector()
 
             releaseCashier()
-            
+
+            if (ANIMATING)
+            {
+              customer.move(register2Split)
+
+              if (random.gen < .25 )
+              {
+                customer.move(split2Lobby)
+                if (lobby.enterLobby(customer))
+                {
+                  director.schedule(this,2.5)
+                  yieldToDirector()
+                  lobby.leaveLobby(customer)
+                }
+                customer.move(lobby2Door)
+              }
+              else
+              {
+                customer.move(split2Door)
+              }
+              customerList.remove(customer)
+            }
+
 
 
              //println(director.clock+": "+this+" exiting")
@@ -317,11 +391,25 @@ object Subway extends App with ProcessInteractionSimulation {
             exit()
         }
    }
-  
 
-  
 
-  val actor = Customer(nCustomers)    //schedule the first arrival at time 0
+  var ANIMATING  = true
+  if (args.length != 1)
+  {
+    println("Usage: ./Subway true|false")
+    exit()
+  }
+  if (args(0).matches("false"))
+    ANIMATING = false
+
+  val random = new Random
+  var customerList = new ArrayList[Customer]()
+  if (ANIMATING) {
+      val animator = new Animator("Subway",List(source,line1,line1Q,source2Line,register,registerQ,
+          line2Register,door,split2Door,split,register2Split,lobby,split2Lobby,lobby2Door),customerList)
+  }
+
+  val actor = SimCustomer(nCustomers)    //schedule the first arrival at time 0
   director.schedule(actor,0)
 
   director.schedule(Stopper(),tStop) //schedule the stopper class
