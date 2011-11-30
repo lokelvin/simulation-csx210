@@ -7,6 +7,7 @@ import simulation.process.{SimActor, Model, ProcessInteractionSimulation}
 import simulation.stat._
 import java.util.ArrayList
 import java.awt.geom.Point2D
+import javax.swing.{JLabel, JPanel}
 
 /**
  * Created by IntelliJ IDEA.
@@ -44,8 +45,8 @@ object Subway extends App with ProcessInteractionSimulation {
   val lobby2Door = new Path(lobby,door)
 
   //the waiting lines
-  var waitQLine =  new Queue[SimCustomer]
-  var waitQReg =  new Queue[SimCustomer]
+  var waitQLine =  new ArrayList[SimCustomer]
+  var waitQReg =  new ArrayList[SimCustomer]
 
   //simulation variables
   tStart = 0
@@ -67,6 +68,7 @@ object Subway extends App with ProcessInteractionSimulation {
   
   val ρ1 = λ / μ_12
   val ρ2 = λ2 / μ_3
+
 
   //Statistics
   def factorial(factorial : Double) : Double = {
@@ -114,11 +116,11 @@ object Subway extends App with ProcessInteractionSimulation {
   
   
   //the cashier
-  case class Server(serviceRate : Double, waitQ : Queue[SimCustomer], val serverNo : Int, val service : Service) extends Entity {
+  case class Server(serviceRate : Double, waitQ : ArrayList[SimCustomer], val serverNo : Int, val service : Service) extends Entity {
     var idle = true
   }
 
-  case class Cashier(serviceRate : Double, waitQ : Queue[SimCustomer], val service : Service) extends Entity {
+  case class Cashier(serviceRate : Double, waitQ : ArrayList[SimCustomer], val service : Service) extends Entity {
     var idle = true
   }
 
@@ -273,7 +275,7 @@ object Subway extends App with ProcessInteractionSimulation {
 
       //if there are still people in line, give the cashier to them immediately
       if (!myServer.waitQ.isEmpty) {
-        val actor = myServer.waitQ.dequeue()
+        val actor = myServer.waitQ.remove(0)
         director.schedule(actor, 0)
       }
 
@@ -286,7 +288,7 @@ object Subway extends App with ProcessInteractionSimulation {
 
         //if there are still people in line, give the cashier to them immediately
         if (!cashier.waitQ.isEmpty) {
-          val actor = cashier.waitQ.dequeue()
+          val actor = cashier.waitQ.remove(0)
           director.schedule(actor, 0)
         }
 
@@ -313,12 +315,12 @@ object Subway extends App with ProcessInteractionSimulation {
             
             //if there are people in line, get in line
             if (!lineWorker1.idle && !lineWorker2.idle) {
-              waitQLine.enqueue(this)
+              waitQLine.add(this)
               if (ANIMATING)
                 line1Q.enterQueue()
               yieldToDirector()
               if (ANIMATING)
-                line1Q.leaveQueue()
+                line1Q.leaveQueue(waitQLine)
             }
 
             if (lineWorker1.idle)
@@ -340,12 +342,12 @@ object Subway extends App with ProcessInteractionSimulation {
 
             if (!cashier.idle)
             {
-              waitQReg.enqueue(this)
+              waitQReg.add(this)
               if (ANIMATING)
                 registerQ.enterQueue()
               yieldToDirector()
               if (ANIMATING)
-                registerQ.leaveQueue()
+                registerQ.leaveQueue(waitQReg)
             }
 
 
@@ -366,7 +368,7 @@ object Subway extends App with ProcessInteractionSimulation {
             {
               customer.move(register2Split)
 
-              if (random.gen < .25 )
+              if (util.Random.nextDouble() < .25 )
               {
                 customer.move(split2Lobby)
                 if (lobby.enterLobby(customer))
@@ -402,7 +404,6 @@ object Subway extends App with ProcessInteractionSimulation {
   if (args(0).matches("false"))
     ANIMATING = false
 
-  val random = new Random
   var customerList = new ArrayList[Customer]()
   if (ANIMATING) {
       val animator = new Animator("Subway",List(source,line1,line1Q,source2Line,register,registerQ,
