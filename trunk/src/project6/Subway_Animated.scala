@@ -1,14 +1,8 @@
 package project6
 
-import collection.mutable.Queue
-
 import simulation.Entity
 import simulation.process.{SimActor, Model, ProcessInteractionSimulation}
-import simulation.stat._
 import java.util.ArrayList
-import java.awt.geom.Point2D
-import javax.swing.{JLabel, JPanel}
-
 /**
  * Created by IntelliJ IDEA.
  * User: robert
@@ -17,7 +11,7 @@ import javax.swing.{JLabel, JPanel}
  * To change this template use File | Settings | File Templates.
  */
 
-object Subway extends App with ProcessInteractionSimulation {
+object Subway_Animated extends App with ProcessInteractionSimulation {
   class Director() extends Model
 
   //the director
@@ -45,12 +39,12 @@ object Subway extends App with ProcessInteractionSimulation {
   val lobby2Split = new Path(lobby,split)
 
   //the waiting lines
-  var waitQLine =  new ArrayList[SimCustomer]
-  var waitQReg =  new ArrayList[SimCustomer]
+  var waitQLine =  new ArrayList[project6.Subway_Animated.SimCustomer]
+  var waitQReg =  new ArrayList[project6.Subway_Animated.SimCustomer]
 
   //simulation variables
   tStart = 0
-  tStop  =4380
+  tStop  =10000
  
   //rates
   λ      = 10.0
@@ -125,114 +119,6 @@ object Subway extends App with ProcessInteractionSimulation {
   val lineWorker2 = Server(μ_2,waitQLine,2,line1)
   val cashier = Cashier(μ_3,waitQReg,register)
 
-  //the stopping "event"/process which kills the system
-  case class Stopper() extends SimActor {
-    def act() {
-      
-      director.simulating = false
-      
-      //for (i <- 1 to 10000) {}
-      
-      println
-      println("STATISTICS FOR LINE")
-      println
-      println("-------------------------------------")
-      println("| %10s | %20s |".format("STAT", "MEAN"))
-      println("-------------------------------------")
-      println("| %10s | %20s |".format("LQ", λ * (waitTimesLine / servedCustomersLine)))
-      println("| %10s | %20s |".format("LS", λ * (serviceTimesLine /  servedCustomersLine)))
-      println("| %10s | %20s |".format("L", λ * (( waitTimesLine /  servedCustomersLine) + ( serviceTimesLine /  servedCustomersLine))))
-      println("-------------------------------------")
-      println("| %10s | %20s |".format("WQ", ( waitTimesLine /  servedCustomersLine)))
-      println("| %10s | %20s |".format("WS", ( serviceTimesLine / servedCustomersLine)))
-      println("| %10s | %20s |".format("W", ( waitTimesLine /  servedCustomersLine) + ( serviceTimesLine /  servedCustomersLine)))
-      println("-------------------------------------")
-   
-      println
-      println("MARKVOVIAN CALCULATED STATISTICS FOR LINE")
-      println("-------------------------------------")
-      println("| %10s | %20s |".format("STAT", "MEAN"))
-      println("-------------------------------------")
-      
-      println("| %10s | %20s |".format("LQ", LQ_LINE ))
-      println("| %10s | %20s |".format("LS", L_LINE-LQ_LINE                ))
-      println("| %10s | %20s |".format("L",  L_LINE       ))
-      
-      println("-------------------------------------")
-      
-      println("| %10s | %20s |".format("WQ", WQ_LINE ))
-      println("| %10s | %20s |".format("WS", W_LINE-WQ_LINE           ))
-      println("| %10s | %20s |".format("W",  W_LINE ))
-      
-      println("-------------------------------------")
-
-
-      println
-      println("STATISTICS FOR REGISTER")
-      println
-      println("-------------------------------------")
-      println("| %10s | %20s |".format("STAT", "MEAN"))
-      println("-------------------------------------")
-      println("| %10s | %20s |".format("LQ", λ2 * (waitTimesReg / servedCustomersReg)))
-      println("| %10s | %20s |".format("LS", λ2 * (serviceTimesReg / servedCustomersReg)))
-      println("| %10s | %20s |".format("L", λ2 * ((waitTimesReg / servedCustomersReg) + (serviceTimesReg / servedCustomersReg))))
-      println("-------------------------------------")
-      println("| %10s | %20s |".format("WQ", (waitTimesReg / servedCustomersReg)))
-      println("| %10s | %20s |".format("WS", (serviceTimesReg / servedCustomersReg)))
-      println("| %10s | %20s |".format("W", (waitTimesReg / servedCustomersReg) + (serviceTimesReg / servedCustomersReg)))
-      println("-------------------------------------")
-
-      println
-      println("MARKVOVIAN CALCULATED STATISTICS FOR REGISTER")
-      println("-------------------------------------")
-      println("| %10s | %20s |".format("STAT", "MEAN"))
-      println("-------------------------------------")
-
-      println("| %10s | %20s |".format("LQ", (ρ2 * ρ2) / (1 - ρ2) ))
-      println("| %10s | %20s |".format("LS", ρ2                 ))
-      println("| %10s | %20s |".format("L",  ρ2 / (1 - ρ2)       ))
-
-      println("-------------------------------------")
-
-      println("| %10s | %20s |".format("WQ", (ρ2 / μ_3) / (1 - ρ2) ))
-      println("| %10s | %20s |".format("WS", (1 / μ_3)           ))
-      println("| %10s | %20s |".format("W",  (1 / μ_3) / (1 - ρ2) ))
-      println("-------------------------------------")
-
-      
-      println
-      println("VARIABLES")
-      println("----------------------------")
-      println("| %s = %20s |".format("λ", λ ))
-      println("| %s = %20s |".format("μ1", μ_1 ))
-      println("| %s = %20s |".format("μ2", μ_2 ))
-      println("| %s = %20s |".format("ρ1", ρ1 ))
-      println("| %s = %20s |".format("λ2", λ2 ))
-      println("| %s = %20s |".format("μ3", μ_3 ))
-      println("| %s = %20s |".format("ρ2", ρ2 ))
-      println("----------------------------")
-      
-      val totalTime = director.clock
-      
-      val wq1 = ( waitTimesLine /  servedCustomersLine)
-      val wq2 = (waitTimesReg / servedCustomersReg)
-      val nc  = nCustomers
-      
-      def payroll (ne: Int): Double = 7.5 * ne * totalTime
-      def net (nc: Double): Double = 5.0 * nc - wq1 * nc - wq2 * nc
-      def profit (ne: Int, nc: Double): Double = net(nc) - payroll(ne)
-      
-      println
-      println("TIME    =  %.3f".format(totalTime))
-      println("PAYROLL = $%.3f".format(payroll(3)))
-      println("NET     = $%.3f".format(net(nc)))
-      println("PROFIT  = $%.3f".format(profit(3, nc)))
-      println
-
-      director ! "resume directing"
-  
-    }
-  }
 
   //the Customer
   case class SimCustomer(customerNumber : Int) extends SimActor {
@@ -252,6 +138,7 @@ object Subway extends App with ProcessInteractionSimulation {
       myServer = server
 
 
+        customer.setPosition(server.service.getCenterOfServer(customer.size,server.serverNo))
 
       val stime = exp(1.0/myServer.serviceRate)
       val waitTime = director.clock - arrivalTime
@@ -267,6 +154,7 @@ object Subway extends App with ProcessInteractionSimulation {
         cashier.idle = false
 
 
+          customer.setPosition(cashier.service.getCenterOfServer(customer.size,1))
 
         val stime = exp(1.0/cashier.serviceRate)
         val waitTime = director.clock - arrivalTime
@@ -291,6 +179,7 @@ object Subway extends App with ProcessInteractionSimulation {
       }
 
 
+        customer.setPosition(myServer.service.getCenter(customer.size))
     }
 
     def releaseCashier()   {
@@ -303,6 +192,7 @@ object Subway extends App with ProcessInteractionSimulation {
         }
 
 
+          customer.setPosition(cashier.service.getCenter(customer.size))
     }
 
 
@@ -317,11 +207,18 @@ object Subway extends App with ProcessInteractionSimulation {
             director.schedule(SimCustomer(nCustomers), exp(1.0/λ)) //schedule another arrival
 
 
+              customerList.add(customer)
+              customer.move(source2Line)
+
             
             //if there are people in line, get in line
             if (!lineWorker1.idle && !lineWorker2.idle) {
               waitQLine.add(this)
+
+                line1Q.enterQueue()
               yieldToDirector()
+
+                line1Q.leaveQueue(waitQLine)
             }
 
             if (lineWorker1.idle)
@@ -330,7 +227,7 @@ object Subway extends App with ProcessInteractionSimulation {
               useLineWorker(lineWorker2)
             else
             {
-              println("You shouldn't be here! 1")
+              println("You shouldn't be here!")
               exit()
             }
 
@@ -339,14 +236,18 @@ object Subway extends App with ProcessInteractionSimulation {
             releaseServer()
 
 
+              customer.move(line2Register)
 
             if (!cashier.idle)
             {
               waitQReg.add(this)
 
+                registerQ.enterQueue()
               yieldToDirector()
 
+                registerQ.leaveQueue(waitQReg)
             }
+
 
 
             if (cashier.idle)
@@ -362,6 +263,28 @@ object Subway extends App with ProcessInteractionSimulation {
             releaseCashier()
 
 
+              customer.move(register2Split)
+
+              if (util.Random.nextDouble() < .25 )
+              {
+                customer.move(split2Lobby)
+                if (lobby.enterLobby(customer))
+                {
+                  director.schedule(this,exp(20))
+                  yieldToDirector()
+                  lobby.leaveLobby(customer)
+                }
+                customer.move(lobby2Split)
+                customer.move(split2Door)
+              }
+              else
+              {
+                customer.move(split2Door)
+              }
+              customerList.remove(customer)
+
+
+
 
              //println(director.clock+": "+this+" exiting")
             director ! "resume directing" //relinquish control
@@ -371,10 +294,16 @@ object Subway extends App with ProcessInteractionSimulation {
 
 
 
+  var customerList = new ArrayList[Customer]()
+
+      val animator = new Animator("Subway",List(source2Line,line2Register, split2Door, register2Split, split2Lobby, lobby2Split,source,line1,line1Q,register,registerQ,
+          door,split,lobby),customerList)
+
+
   val actor = SimCustomer(nCustomers)    //schedule the first arrival at time 0
   director.schedule(actor,0)
 
-  director.schedule(Stopper(),tStop) //schedule the stopper class
+  director.schedule(project6.Subway.Stopper(),tStop) //schedule the stopper class
 
   director.start() //run
 

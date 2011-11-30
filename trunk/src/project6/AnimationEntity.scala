@@ -6,7 +6,7 @@ import java.awt.geom._
 import java.awt.geom.Line2D.Double
 import java.awt.geom.Point2D.Double
 import collection.mutable.Queue
-import project6.Subway.SimCustomer
+import project6.Subway_Animated.SimCustomer
 import java.awt.geom.Ellipse2D.Double
 import java.awt.geom.Rectangle2D.Double
 import java.util.ArrayList
