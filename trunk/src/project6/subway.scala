@@ -30,19 +30,19 @@ object Subway extends App with ProcessInteractionSimulation {
 
   //The animation entities
   val source =  new Source()
-  val line1 = new Service(200,25,N_SERVERS_LINE)
+  val line1 = new Service(200,50,N_SERVERS_LINE)
   val line1Q = new WaitQueue(line1)
   val source2Line = new Path(source,line1Q)
-  val register = new Service(400,35,N_SERVERS_REG)
+  val register = new Service(400,60,N_SERVERS_REG)
   val registerQ = new WaitQueue(register)
   val line2Register = new Path(line1,registerQ)
-  val split = new Split(500,50)
+  val split = new Split(500,150)
   val register2Split = new Path(register,split)
-  val door = new Source(600,30)
+  val door = new Source(600,150)
   val split2Door = new Path(split,door)
   val lobby = new Lobby(250,150,60,100)
   val split2Lobby = new Path(split,lobby)
-  val lobby2Door = new Path(lobby,door)
+  val lobby2Split = new Path(lobby,split)
 
   //the waiting lines
   var waitQLine =  new ArrayList[SimCustomer]
@@ -377,7 +377,8 @@ object Subway extends App with ProcessInteractionSimulation {
                   yieldToDirector()
                   lobby.leaveLobby(customer)
                 }
-                customer.move(lobby2Door)
+                customer.move(lobby2Split)
+                customer.move(split2Door)
               }
               else
               {
@@ -406,8 +407,8 @@ object Subway extends App with ProcessInteractionSimulation {
 
   var customerList = new ArrayList[Customer]()
   if (ANIMATING) {
-      val animator = new Animator("Subway",List(source,line1,line1Q,source2Line,register,registerQ,
-          line2Register,door,split2Door,split,register2Split,lobby,split2Lobby,lobby2Door),customerList)
+      val animator = new Animator("Subway",List(source2Line,line2Register, split2Door, register2Split, split2Lobby, lobby2Split,source,line1,line1Q,register,registerQ,
+          door,split,lobby),customerList)
   }
 
   val actor = SimCustomer(nCustomers)    //schedule the first arrival at time 0
