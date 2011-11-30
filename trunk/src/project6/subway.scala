@@ -51,10 +51,7 @@ object Subway extends App with ProcessInteractionSimulation {
   //simulation variables
   tStart = 0
   tStop  =10000
-  
-  import scalation.random._
-
-
+ 
   //rates
   λ      = 10.0
 
@@ -215,6 +212,22 @@ object Subway extends App with ProcessInteractionSimulation {
       println("| %s = %20s |".format("ρ2", ρ2 ))
       println("----------------------------")
       
+      val totalTime = director.clock
+      
+      val wq1 = ( waitTimesLine /  servedCustomersLine)
+      val wq2 = (waitTimesReg / servedCustomersReg)
+      val nc  = nCustomers
+      
+      def payroll (ne: Int): Double = 7.5 * ne * totalTime
+      def net (nc: Double): Double = 5.0 * nc - wq1 * nc - wq2 * nc
+      def profit (ne: Int, nc: Double): Double = net(nc) - payroll(ne)
+      
+      println
+      println("TIME    =  %.3f".format(totalTime))
+      println("PAYROLL = $%.3f".format(payroll(3)))
+      println("NET     = $%.3f".format(net(nc)))
+      println("PROFIT  = $%.3f".format(profit(3, nc)))
+      println
 
       director ! "resume directing"
   
