@@ -8,7 +8,6 @@ import scalation.scala2d._
 import collection.mutable.{Queue, PriorityQueue}
 import swing.{MainFrame, Panel}
 import swing.RichWindow._
-import swing.Window._
 import java.awt.{Graphics2D, Dimension}
 
 abstract class Model extends Actor {
