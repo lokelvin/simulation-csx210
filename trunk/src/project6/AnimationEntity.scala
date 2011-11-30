@@ -9,6 +9,7 @@ import collection.mutable.Queue
 import project6.Subway.SimCustomer
 import java.awt.geom.Ellipse2D.Double
 import java.awt.geom.Rectangle2D.Double
+import java.util.ArrayList
 
 /**
  * Created by IntelliJ IDEA.
@@ -61,7 +62,7 @@ class Source(x:Int = 30, y:Int = 30, val size:Int = 30, val color: Color = new C
 
 class Customer(source : Source, val size :Int = 10,val color : Color = Color.getHSBColor( Random.nextFloat(), 1.0F, 1.0F )) extends AnimationEntity(source.getCenter(size).getX.toInt,source.getCenter(size).getY.toInt) {
   var entity : Shape = new Ellipse2D.Double()
-  val stepSize = 60
+  val stepSize = 20
 
   def setFrame()
   {
@@ -125,9 +126,17 @@ class WaitQueue(val forWho: AnimationEntity,val size:Int = 10, val color:Color =
     customersInQueue += 1
   }
 
-  def leaveQueue()
+  def leaveQueue(q : ArrayList[SimCustomer])
   {
      customersInQueue -= 1
+    var max = 4
+    if (q.size()-1< max)
+      max = q.size()-1
+    for (i <- 0 to max)
+    {
+      val customer = q.get(i).customer
+      customer.setPosition(customer.position.getX.toInt+customer.size,customer.position.getY.toInt)
+    }
   }
 
   override def getCenter(otherSize : Int) : Point2D =
@@ -137,7 +146,7 @@ class WaitQueue(val forWho: AnimationEntity,val size:Int = 10, val color:Color =
       temp = 5
     else
       temp = customersInQueue
-    center.setLocation((position.getX+entity.getBounds.getWidth-10-(otherSize*(temp+1))),((position.getY)+size/2)-otherSize/2)
+    center.setLocation((position.getX+entity.getBounds.getWidth-(otherSize*(temp+1))),((position.getY)+size/2)-otherSize/2)
     center
   }
 

@@ -32,6 +32,7 @@ class Animator (title: String,components : List[AnimationEntity], customerList:A
     {
       super.paintComponent(gr)
       implicit val gr2: Graphics2D = gr.asInstanceOf[Graphics2D]
+
       val iter = components.iterator
       while (iter.hasNext)
         iter.next().draw
