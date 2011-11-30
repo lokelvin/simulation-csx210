@@ -62,7 +62,7 @@ class Source(x:Int = 30, y:Int = 30, val size:Int = 30, val color: Color = new C
 
 class Customer(source : Source, val size :Int = 10,val color : Color = Color.getHSBColor( Random.nextFloat(), 1.0F, 1.0F )) extends AnimationEntity(source.getCenter(size).getX.toInt,source.getCenter(size).getY.toInt) {
   var entity : Shape = new Ellipse2D.Double()
-  val stepSize = 20
+  val stepSize = 50
 
   def setFrame()
   {
@@ -77,8 +77,8 @@ class Customer(source : Source, val size :Int = 10,val color : Color = Color.get
     val deltaY  = (center2.getY-center1.getY)/stepSize
     for (i <- 0 to stepSize)
     {
-        position.setLocation(position.getX+deltaX,position.getY+deltaY)
-      Thread.sleep(10)
+      position.setLocation(position.getX+deltaX,position.getY+deltaY)
+      Thread.sleep(5)
     }
   }
 }
@@ -146,7 +146,7 @@ class WaitQueue(val forWho: AnimationEntity,val size:Int = 10, val color:Color =
       temp = 5
     else
       temp = customersInQueue
-    center.setLocation((position.getX+entity.getBounds.getWidth-(otherSize*(temp+1))),((position.getY)+size/2)-otherSize/2)
+    center.setLocation((position.getX+entity.getBounds.getWidth-(otherSize*(temp+1))-otherSize/2),((position.getY)+size/2)-otherSize/2)
     center
   }
 
@@ -167,11 +167,28 @@ class Lobby (x: Int, y:Int, val height : Int, val width : Int, val color : Color
 {
   val size = height * width
   var entity : Shape = new Rectangle2D.Double()
+  val maxSeats = ((width/10)*(height/10))
+  var noDiners = 0
 
   val seats : Array[Customer] = new Array[Customer]((width/10)*(height/10))
 
   def enterLobby(customer : Customer) : Boolean =
   {
+    if (noDiners < maxSeats)
+      noDiners +=1
+    else
+    {
+      return false
+    }
+
+    var i = 0
+    do {
+       i = util.Random.nextInt().abs%(((width/10)*(height/10)))
+    }while (seats(i) != null)
+    seats(i) = customer
+    customer.setPosition(i%(width/10)*10+position.getX.toInt,i/(width/10)*10+position.getY.toInt)
+    return true
+    /*
     for (i <- 0 to ((width/10)*(height/10))-1)
     {
         if (seats(i)==null){
@@ -180,7 +197,7 @@ class Lobby (x: Int, y:Int, val height : Int, val width : Int, val color : Color
              return true
         }
     }
-    return false
+    return false  */
   }
 
   def leaveLobby(customer : Customer)
@@ -190,6 +207,7 @@ class Lobby (x: Int, y:Int, val height : Int, val width : Int, val color : Color
     {
         if (seats(i)==customer){
              seats(i) = null
+             noDiners -= 1
              return
         }
 
