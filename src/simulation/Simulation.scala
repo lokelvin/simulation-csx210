@@ -5,7 +5,7 @@ package simulation
  */
 trait Simulation {
 
-  println("Setting up the environment for a simulation [trait Simulation]")
+  // println("Setting up the environment for a simulation [trait Simulation]")
   
   // the start time of the simulation
   var tStart: Int = 0

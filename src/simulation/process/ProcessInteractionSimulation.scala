@@ -6,6 +6,6 @@ package process
  */
 trait ProcessInteractionSimulation extends Simulation {
 
-  println("Setting up the environment for a process interaction simulation [trait ProcessInteractionSimulation]")
+  // println("Setting up the environment for a process interaction simulation [trait ProcessInteractionSimulation]")
   
 } // ProcessInteractionSimulation
