@@ -131,86 +131,21 @@ object Subway extends App with ProcessInteractionSimulation {
       
       director.simulating = false
       
-      //for (i <- 1 to 10000) {}
+      val LQ_LIN = λ * (waitTimesLine / servedCustomersLine)
+      val LS_LIN = λ * (serviceTimesLine /  servedCustomersLine)
+      val L_LIN  = LQ_LIN + LS_LIN
       
-      println
-      println("STATISTICS FOR LINE")
-      println
-      println("-------------------------------------")
-      println("| %10s | %20s |".format("STAT", "MEAN"))
-      println("-------------------------------------")
-      println("| %10s | %20s |".format("LQ", λ * (waitTimesLine / servedCustomersLine)))
-      println("| %10s | %20s |".format("LS", λ * (serviceTimesLine /  servedCustomersLine)))
-      println("| %10s | %20s |".format("L", λ * (( waitTimesLine /  servedCustomersLine) + ( serviceTimesLine /  servedCustomersLine))))
-      println("-------------------------------------")
-      println("| %10s | %20s |".format("WQ", ( waitTimesLine /  servedCustomersLine)))
-      println("| %10s | %20s |".format("WS", ( serviceTimesLine / servedCustomersLine)))
-      println("| %10s | %20s |".format("W", ( waitTimesLine /  servedCustomersLine) + ( serviceTimesLine /  servedCustomersLine)))
-      println("-------------------------------------")
-   
-      println
-      println("MARKVOVIAN CALCULATED STATISTICS FOR LINE")
-      println("-------------------------------------")
-      println("| %10s | %20s |".format("STAT", "MEAN"))
-      println("-------------------------------------")
+      val WQ_LIN = (waitTimesLine /  servedCustomersLine)
+      val WS_LIN = (serviceTimesLine / servedCustomersLine)
+      val W_LIN  = WQ_LIN + WS_LIN
       
-      println("| %10s | %20s |".format("LQ", LQ_LINE ))
-      println("| %10s | %20s |".format("LS", L_LINE-LQ_LINE                ))
-      println("| %10s | %20s |".format("L",  L_LINE       ))
+      val LQ_REG = λ * (waitTimesReg / servedCustomersReg)
+      val LS_REG = λ * (serviceTimesReg /  servedCustomersReg)
+      val L_REG  = LQ_REG + LS_REG
       
-      println("-------------------------------------")
-      
-      println("| %10s | %20s |".format("WQ", WQ_LINE ))
-      println("| %10s | %20s |".format("WS", W_LINE-WQ_LINE           ))
-      println("| %10s | %20s |".format("W",  W_LINE ))
-      
-      println("-------------------------------------")
-
-
-      println
-      println("STATISTICS FOR REGISTER")
-      println
-      println("-------------------------------------")
-      println("| %10s | %20s |".format("STAT", "MEAN"))
-      println("-------------------------------------")
-      println("| %10s | %20s |".format("LQ", λ2 * (waitTimesReg / servedCustomersReg)))
-      println("| %10s | %20s |".format("LS", λ2 * (serviceTimesReg / servedCustomersReg)))
-      println("| %10s | %20s |".format("L", λ2 * ((waitTimesReg / servedCustomersReg) + (serviceTimesReg / servedCustomersReg))))
-      println("-------------------------------------")
-      println("| %10s | %20s |".format("WQ", (waitTimesReg / servedCustomersReg)))
-      println("| %10s | %20s |".format("WS", (serviceTimesReg / servedCustomersReg)))
-      println("| %10s | %20s |".format("W", (waitTimesReg / servedCustomersReg) + (serviceTimesReg / servedCustomersReg)))
-      println("-------------------------------------")
-
-      println
-      println("MARKVOVIAN CALCULATED STATISTICS FOR REGISTER")
-      println("-------------------------------------")
-      println("| %10s | %20s |".format("STAT", "MEAN"))
-      println("-------------------------------------")
-
-      println("| %10s | %20s |".format("LQ", (ρ2 * ρ2) / (1 - ρ2) ))
-      println("| %10s | %20s |".format("LS", ρ2                 ))
-      println("| %10s | %20s |".format("L",  ρ2 / (1 - ρ2)       ))
-
-      println("-------------------------------------")
-
-      println("| %10s | %20s |".format("WQ", (ρ2 / μ_3) / (1 - ρ2) ))
-      println("| %10s | %20s |".format("WS", (1 / μ_3)           ))
-      println("| %10s | %20s |".format("W",  (1 / μ_3) / (1 - ρ2) ))
-      println("-------------------------------------")
-
-      
-      println
-      println("VARIABLES")
-      println("----------------------------")
-      println("| %s = %20s |".format("λ", λ ))
-      println("| %s = %20s |".format("μ1", μ_1 ))
-      println("| %s = %20s |".format("μ2", μ_2 ))
-      println("| %s = %20s |".format("ρ1", ρ1 ))
-      println("| %s = %20s |".format("λ2", λ2 ))
-      println("| %s = %20s |".format("μ3", μ_3 ))
-      println("| %s = %20s |".format("ρ2", ρ2 ))
-      println("----------------------------")
+      val WQ_REG = (waitTimesReg /  servedCustomersReg)
+      val WS_REG = (serviceTimesReg / servedCustomersReg)
+      val W_REG  = WQ_REG + WS_REG
       
       val totalTime = director.clock
       
@@ -222,12 +157,7 @@ object Subway extends App with ProcessInteractionSimulation {
       def net (nc: Double): Double = 5.0 * nc - wq1 * nc - wq2 * nc
       def profit (ne: Int, nc: Double): Double = net(nc) - payroll(ne)
       
-      println
-      println("TIME    =  %.3f".format(totalTime))
-      println("PAYROLL = $%.3f".format(payroll(3)))
-      println("NET     = $%.3f".format(net(nc)))
-      println("PROFIT  = $%.3f".format(profit(3, nc)))
-      println
+      println("%.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.2f, %.2f, %.2f".format(LQ_LIN, LS_LIN, L_LIN, WQ_LIN, WS_LIN, W_LIN, LQ_REG, LS_REG, L_REG, WQ_REG, WS_REG, W_REG, totalTime, payroll(3), net(nc), profit(3, nc)))
 
       director ! "resume directing"
   
