@@ -78,7 +78,7 @@ class Customer(source : Source, val size :Int = 10,val color : Color = Color.get
     for (i <- 0 to stepSize)
     {
       position.setLocation(position.getX+deltaX,position.getY+deltaY)
-      Thread.sleep(5)
+      Thread.sleep(Animator.speed)
     }
   }
 }
