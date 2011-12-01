@@ -159,6 +159,42 @@ object Subway extends App with ProcessInteractionSimulation {
       
       println("%.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.2f, %.2f, %.2f".format(LQ_LIN, LS_LIN, L_LIN, WQ_LIN, WS_LIN, W_LIN, LQ_REG, LS_REG, L_REG, WQ_REG, WS_REG, W_REG, totalTime, payroll(3), net(nc), profit(3, nc)))
 
+      println
+      println("MARKVOVIAN CALCULATED STATISTICS FOR LINE")
+      println("-------------------------------------")
+      println("| %10s | %20s |".format("STAT", "MEAN"))
+      println("-------------------------------------")
+      
+      println("| %10s | %20s |".format("LQ", LQ_LINE ))
+      println("| %10s | %20s |".format("LS", L_LINE-LQ_LINE                ))
+      println("| %10s | %20s |".format("L",  L_LINE       ))
+      
+      println("-------------------------------------")
+      
+      println("| %10s | %20s |".format("WQ", WQ_LINE ))
+      println("| %10s | %20s |".format("WS", W_LINE-WQ_LINE           ))
+      println("| %10s | %20s |".format("W",  W_LINE ))
+      
+      println("-------------------------------------")
+
+      println
+      println("MARKVOVIAN CALCULATED STATISTICS FOR REGISTER")
+      println("-------------------------------------")
+      println("| %10s | %20s |".format("STAT", "MEAN"))
+      println("-------------------------------------")
+
+      println("| %10s | %20s |".format("LQ", (ρ2 * ρ2) / (1 - ρ2) ))
+      println("| %10s | %20s |".format("LS", ρ2                 ))
+      println("| %10s | %20s |".format("L",  ρ2 / (1 - ρ2)       ))
+
+      println("-------------------------------------")
+
+      println("| %10s | %20s |".format("WQ", (ρ2 / μ_3) / (1 - ρ2) ))
+      println("| %10s | %20s |".format("WS", (1 / μ_3)           ))
+      println("| %10s | %20s |".format("W",  (1 / μ_3) / (1 - ρ2) ))
+      println("-------------------------------------")
+
+
       director ! "resume directing"
   
     }
