@@ -81,11 +81,25 @@ class Customer(source : Source, val size :Int = 10,val color : Color = Color.get
       Thread.sleep(Animator.speed)
     }
   }
+
+  def move(along : List[Path])
+  {
+      for (path : Path <- along)
+      {
+        move(path)
+      }
+  }
 }
 
 class Service(x:Int, y:Int, val servers : Int = 1,val size:Int = 20, val color: Color = new Color(143,188,143)) extends AnimationEntity(x,y)
 {
   var entity : Shape = new Rectangle2D.Double()
+
+  def use(customer : Customer, server : Int)
+  {
+    customer.setPosition(getCenterOfServer(customer.size,server))
+  }
+  def useCenter(customer : Customer) = customer.setPosition(getCenter(customer.size))
 
   def getCenterOfServer(otherSize: Int, serverNo: Int): Point2D =
   {

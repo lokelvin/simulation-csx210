@@ -5,8 +5,8 @@ import java.awt.geom.{Dimension2D, Point2D, Ellipse2D}
 import java.awt.geom.Ellipse2D.Double
 import java.awt.geom.Point2D.Double
 import java.util.{ArrayList}
-import javax.swing.{JSlider, JLabel, JPanel, JFrame}
 import javax.swing.event.ChangeEvent
+import javax.swing._
 
 /**
  * Created by IntelliJ IDEA.
@@ -55,7 +55,11 @@ class Animator (title: String,components : List[AnimationEntity], customerList:A
   val displayer = new Thread(this)
   displayer.start
 
-  val slider = new JSlider(javax.swing.SwingConstants.HORIZONTAL,1,100, 10)
+  val utilization1 = new JLabel()
+  val utilization2 = new JLabel()
+  val turnedAway = new JLabel()
+
+  val slider = new JSlider(javax.swing.SwingConstants.HORIZONTAL,1,100, 20)
   slider.addChangeListener(this)
 
   def stateChanged(e : ChangeEvent)
@@ -73,6 +77,11 @@ class Animator (title: String,components : List[AnimationEntity], customerList:A
     {
       super.paintComponent(gr)
       //Labels
+
+      add(turnedAway)
+      turnedAway.setText("Lost: %d".format(Subway_Animated.turnedAway))
+      turnedAway.setLocation((Subway_Animated.lobby.position.getX).toInt,(Subway_Animated.lobby.position.getY+Subway_Animated.lobby.entity.getBounds.getHeight).toInt+10)
+
       add(lineLabel)
       lineLabel.setLocation(0,lineStatsY)
       add(LQ_Line)
@@ -126,6 +135,15 @@ class Animator (title: String,components : List[AnimationEntity], customerList:A
 
       add(slider)
       slider.setLocation(150,0)
+
+      add(utilization1)
+      utilization1.setText("Server utilization: %s".format(Subway_Animated.serviceTimesLine/Subway_Animated.N_SERVERS_LINE.toDouble/Subway_Animated.getClock))
+      utilization1.setLocation(300,200)
+
+      add(utilization2)
+      utilization2.setText("Register utilization: %s".format(Subway_Animated.serviceTimesReg/Subway_Animated.getClock))
+      utilization2.setLocation(300,210)
+
 
       implicit val gr2: Graphics2D = gr.asInstanceOf[Graphics2D]
       val iter = components.iterator
