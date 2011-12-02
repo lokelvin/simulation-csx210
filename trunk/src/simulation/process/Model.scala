@@ -59,7 +59,7 @@ abstract class Model extends Actor {
         actor ! "resume acting"
       }
       //wait for the actor to rescind control
-      receive {case "resume directing" => {}}
+        receive {case "resume directing" => {}}
     }
     exit()
     finished = true

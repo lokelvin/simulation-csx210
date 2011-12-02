@@ -12,6 +12,8 @@ import java.util.ArrayList
  */
 
 object Subway_Animated extends App with ProcessInteractionSimulation {
+  val ANIMATING = false
+
   class Director() extends Model
 
   //the director
@@ -34,7 +36,7 @@ object Subway_Animated extends App with ProcessInteractionSimulation {
   val register2Split = new Path(register,split)
   val door = new Source(600,150)
   val split2Door = new Path(split,door)
-  val lobby = new Lobby(250,150,60,100)
+  val lobby = new Lobby(250,150,60,40)
   val split2Lobby = new Path(split,lobby)
   val lobby2Split = new Path(lobby,split)
 
@@ -44,21 +46,30 @@ object Subway_Animated extends App with ProcessInteractionSimulation {
 
   //simulation variables
   tStart = 0
-  tStop  =10000
- 
+  tStop  = 4380
+
+  var turnedAway = 0
+
+
   //rates
+
   λ      = 10.0
 
-  val μ_1     = 7.0
-  val μ_2     = 6.0
+  var lineWorkerServiceRates = Array(7.0,6.0,7.0,6.0,7.0,6.0)
 
-  def μ_12 = μ_1+μ_2
+  def serviceRate_Line : Double = {
+    var sum =0.
+    for (i <- 0 to N_SERVERS_LINE-1)
+        sum += lineWorkerServiceRates(i)
+    sum
+  }
 
-  def λ2      =  μ_12
-  val μ_3     = 14.0
+  def λ2      =  serviceRate_Line
+  val μ_Reg     = 14.0
   
-  val ρ1 = λ / μ_12
-  val ρ2 = λ2 / μ_3
+  val ρ1 = λ / serviceRate_Line
+  val ρ2 = λ2 / μ_Reg
+
 
 
   //Statistics
@@ -85,7 +96,7 @@ object Subway_Animated extends App with ProcessInteractionSimulation {
 
   def L_LINE : Double = N_SERVERS_LINE*ρ1 + LQ_LINE
   def W_LINE : Double = L_LINE/λ
-  def WQ_LINE : Double = W_LINE-(1/(μ_12/2))
+  def WQ_LINE : Double = W_LINE-(1/(serviceRate_Line/2))
   def LQ_LINE : Double = (ρ1*probAllSrvBsy)/(1-ρ1)
 
   def log (x: Double): Double = java.lang.Math.log(x)
@@ -107,17 +118,131 @@ object Subway_Animated extends App with ProcessInteractionSimulation {
   
   
   //the cashier
-  case class Server(serviceRate : Double, waitQ : ArrayList[SimCustomer], val serverNo : Int, val service : Service) extends Entity {
+  class Server(val serviceRate : Double, val waitQ : ArrayList[SimCustomer], val serverNo : Int, val service : Service) extends Entity {
     var idle = true
+    def use(customer: Customer) = service.use(customer,serverNo)
+    def useCenter(customer: Customer) = service.useCenter(customer)
   }
 
-  case class Cashier(serviceRate : Double, waitQ : ArrayList[SimCustomer], val service : Service) extends Entity {
-    var idle = true
+  class lineWorker(serviceRate : Double, waitQ : ArrayList[SimCustomer], serverNo : Int, service : Service) extends Server(serviceRate,waitQ,serverNo,service)
+
+  class Cashier(serviceRate : Double, waitQ : ArrayList[SimCustomer], service : Service) extends Server(serviceRate,waitQ,1,service)
+
+  //the stopping "event"/process which kills the system
+  case class Stopper() extends SimActor {
+    def act() {
+
+      director.simulating = false
+
+     /* val LQ_LIN = λ * (waitTimesLine / servedCustomersLine)
+      val LS_LIN = λ * (serviceTimesLine /  servedCustomersLine)
+      val L_LIN  = LQ_LIN + LS_LIN
+
+      val WQ_LIN = (waitTimesLine /  servedCustomersLine)
+      val WS_LIN = (serviceTimesLine / servedCustomersLine)
+      val W_LIN  = WQ_LIN + WS_LIN
+
+      val LQ_REG = λ * (waitTimesReg / servedCustomersReg)
+      val LS_REG = λ * (serviceTimesReg /  servedCustomersReg)
+      val L_REG  = LQ_REG + LS_REG
+
+      val WQ_REG = (waitTimesReg /  servedCustomersReg)
+      val WS_REG = (serviceTimesReg / servedCustomersReg)
+      val W_REG  = WQ_REG + WS_REG
+
+      val totalTime = director.clock
+
+      val wq1 = ( waitTimesLine /  servedCustomersLine)
+      val wq2 = (waitTimesReg / servedCustomersReg)
+      val nc  = nCustomers
+
+      def payroll (ne: Int): Double = 7.5 * ne * totalTime
+      def net (nc: Double): Double = 5.0 * nc - wq1 * nc - wq2 * nc
+      def profit (ne: Int, nc: Double): Double = net(nc) - payroll(ne)
+
+      println("%.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.2f, %.2f, %.2f".format(LQ_LIN, LS_LIN, L_LIN, WQ_LIN, WS_LIN, W_LIN, LQ_REG, LS_REG, L_REG, WQ_REG, WS_REG, W_REG, totalTime, payroll(3), net(nc), profit(3, nc)))*/
+      println
+      println("STATISTICS FOR LINE")
+      println
+      println("-------------------------------------")
+      println("| %10s | %20s |".format("STAT", "MEAN"))
+      println("-------------------------------------")
+      println("| %10s | %20s |".format("LQ", λ * (waitTimesLine / servedCustomersLine)))
+      println("| %10s | %20s |".format("LS", λ * (serviceTimesLine /  servedCustomersLine)))
+      println("| %10s | %20s |".format("L", λ * (( waitTimesLine /  servedCustomersLine) + ( serviceTimesLine /  servedCustomersLine))))
+      println("-------------------------------------")
+      println("| %10s | %20s |".format("WQ", ( waitTimesLine /  servedCustomersLine)))
+      println("| %10s | %20s |".format("WS", ( serviceTimesLine / servedCustomersLine)))
+      println("| %10s | %20s |".format("W", ( waitTimesLine /  servedCustomersLine) + ( serviceTimesLine /  servedCustomersLine)))
+      println("-------------------------------------")
+
+      println
+      println("MARKVOVIAN CALCULATED STATISTICS FOR LINE")
+      println("-------------------------------------")
+      println("| %10s | %20s |".format("STAT", "MEAN"))
+      println("-------------------------------------")
+
+      println("| %10s | %20s |".format("LQ", LQ_LINE ))
+      println("| %10s | %20s |".format("LS", L_LINE-LQ_LINE                ))
+      println("| %10s | %20s |".format("L",  L_LINE       ))
+
+      println("-------------------------------------")
+
+      println("| %10s | %20s |".format("WQ", WQ_LINE ))
+      println("| %10s | %20s |".format("WS", W_LINE-WQ_LINE           ))
+      println("| %10s | %20s |".format("W",  W_LINE ))
+
+      println("-------------------------------------")
+
+
+      println
+      println("STATISTICS FOR REGISTER")
+      println
+      println("-------------------------------------")
+      println("| %10s | %20s |".format("STAT", "MEAN"))
+      println("-------------------------------------")
+      println("| %10s | %20s |".format("LQ", λ2 * (waitTimesReg / servedCustomersReg)))
+      println("| %10s | %20s |".format("LS", λ2 * (serviceTimesReg / servedCustomersReg)))
+      println("| %10s | %20s |".format("L", λ2 * ((waitTimesReg / servedCustomersReg) + (serviceTimesReg / servedCustomersReg))))
+      println("-------------------------------------")
+      println("| %10s | %20s |".format("WQ", (waitTimesReg / servedCustomersReg)))
+      println("| %10s | %20s |".format("WS", (serviceTimesReg / servedCustomersReg)))
+      println("| %10s | %20s |".format("W", (waitTimesReg / servedCustomersReg) + (serviceTimesReg / servedCustomersReg)))
+      println("-------------------------------------")
+
+      println
+      println("MARKVOVIAN CALCULATED STATISTICS FOR REGISTER")
+      println("-------------------------------------")
+      println("| %10s | %20s |".format("STAT", "MEAN"))
+      println("-------------------------------------")
+
+      println("| %10s | %20s |".format("LQ", (ρ2 * ρ2) / (1 - ρ2) ))
+      println("| %10s | %20s |".format("LS", ρ2                 ))
+      println("| %10s | %20s |".format("L",  ρ2 / (1 - ρ2)       ))
+
+      println("-------------------------------------")
+
+      println("| %10s | %20s |".format("WQ", (ρ2 / serviceRate_Line) / (1 - ρ2) ))
+      println("| %10s | %20s |".format("WS", (1 / serviceRate_Line)           ))
+      println("| %10s | %20s |".format("W",  (1 / serviceRate_Line) / (1 - ρ2) ))
+      println("-------------------------------------")
+
+      println("SrvRtLn = %s".format(serviceRate_Line))
+      director ! "resume directing"
+
+    }
   }
 
-  val lineWorker1 = Server(μ_1,waitQLine,1,line1)
-  val lineWorker2 = Server(μ_2,waitQLine,2,line1)
-  val cashier = Cashier(μ_3,waitQReg,register)
+  var lineWorkers = new Array[lineWorker](N_SERVERS_LINE)
+  for (i <- 0 to N_SERVERS_LINE-1)
+  {
+    lineWorkers(i) = (new lineWorker(lineWorkerServiceRates(i),waitQLine,i+1,line1))
+  }
+  //val lineWorker1 = Server(μ_1,waitQLine,1,line1)
+  //val lineWorker2 = Server(μ_2,waitQLine,2,line1)
+
+
+  val cashier = new Cashier(μ_Reg,waitQReg,register)
 
 
   //the Customer
@@ -137,8 +262,8 @@ object Subway_Animated extends App with ProcessInteractionSimulation {
       server.idle = false
       myServer = server
 
-
-        customer.setPosition(server.service.getCenterOfServer(customer.size,server.serverNo))
+      if (ANIMATING)
+        myServer.use(customer)
 
       val stime = exp(1.0/myServer.serviceRate)
       val waitTime = director.clock - arrivalTime
@@ -150,11 +275,12 @@ object Subway_Animated extends App with ProcessInteractionSimulation {
       director.schedule(this, stime)
     }
 
-    def useCashier()    {
-        cashier.idle = false
+    def useCashier(cashier : Cashier)    {
+      cashier.idle = false
+      myServer = cashier
 
-
-          customer.setPosition(cashier.service.getCenterOfServer(customer.size,1))
+        if (ANIMATING)
+            myServer.use(customer)
 
         val stime = exp(1.0/cashier.serviceRate)
         val waitTime = director.clock - arrivalTime
@@ -178,132 +304,142 @@ object Subway_Animated extends App with ProcessInteractionSimulation {
         director.schedule(actor, 0)
       }
 
-
-        customer.setPosition(myServer.service.getCenter(customer.size))
+       if (ANIMATING)
+        myServer.useCenter(customer)
     }
 
-    def releaseCashier()   {
-        cashier.idle = true
-
-        //if there are still people in line, give the cashier to them immediately
-        if (!cashier.waitQ.isEmpty) {
-          val actor = cashier.waitQ.remove(0)
-          director.schedule(actor, 0)
-        }
-
-
-          customer.setPosition(cashier.service.getCenter(customer.size))
-    }
 
 
     /**
      * Wait for messages from the director to continue through the loop
      */
     def act() {
-            arrivalTime = director.clock             //set the arrival time
-            
-            nCustomers +=  1 //increment the number of customers through the system
-            
-            director.schedule(SimCustomer(nCustomers), exp(1.0/λ)) //schedule another arrival
+      arrivalTime = director.clock             //set the arrival time
 
+      nCustomers +=  1 //increment the number of customers through the system
 
-              customerList.add(customer)
-              customer.move(source2Line)
+      director.schedule(SimCustomer(nCustomers), exp(1.0/λ)) //schedule another arrival
 
-            
-            //if there are people in line, get in line
-            if (!lineWorker1.idle && !lineWorker2.idle) {
-              waitQLine.add(this)
+      if (ANIMATING)
+      {
+        customerList.add(customer)
+        customer.move(source2Line)
+      }
 
-                line1Q.enterQueue()
-              yieldToDirector()
-
-                line1Q.leaveQueue(waitQLine)
-            }
-
-            if (lineWorker1.idle)
-              useLineWorker(lineWorker1)
-            else if (lineWorker2.idle)
-              useLineWorker(lineWorker2)
-            else
-            {
-              println("You shouldn't be here!")
-              exit()
-            }
-
-            yieldToDirector()
-
-            releaseServer()
-
-
-              customer.move(line2Register)
-
-            if (!cashier.idle)
-            {
-              waitQReg.add(this)
-
-                registerQ.enterQueue()
-              yieldToDirector()
-
-                registerQ.leaveQueue(waitQReg)
-            }
-
-
-
-            if (cashier.idle)
-              useCashier()
-            else
-            {
-              println("You shouldn't be here!")
-              exit()
-            }
-
-            yieldToDirector()
-
-            releaseCashier()
-
-
-              customer.move(register2Split)
-
-              if (util.Random.nextDouble() < .25 )
-              {
-                customer.move(split2Lobby)
-                if (lobby.enterLobby(customer))
-                {
-                  director.schedule(this,exp(20))
-                  yieldToDirector()
-                  lobby.leaveLobby(customer)
-                }
-                customer.move(lobby2Split)
-                customer.move(split2Door)
-              }
-              else
-              {
-                customer.move(split2Door)
-              }
-              customerList.remove(customer)
-
-
-
-
-             //println(director.clock+": "+this+" exiting")
-            director ! "resume directing" //relinquish control
-            exit()
+      //if there are people in line, get in line
+      var used = false
+      for (j <- 0 to N_SERVERS_LINE-1)
+      {
+        val server = lineWorkers(j)
+        if (server.idle && !used)
+        {
+          useLineWorker(server)
+          used = true
         }
+      }
+
+      if (!used)
+      {
+        used = !used
+        waitQLine.add(this)
+        if (ANIMATING)
+          line1Q.enterQueue()
+        director ! "resume directing"
+        receive {case "resume acting" => }
+        if (ANIMATING)
+          line1Q.leaveQueue(waitQLine)
+        for (j <- 0 to N_SERVERS_LINE-1)
+        {
+          val server = lineWorkers(j)
+          if (server.idle && !used)
+          {
+            useLineWorker(server)
+            used = true
+          }
+        }
+      }
+
+      director ! "resume directing"
+    receive {case "resume acting" => }
+
+      releaseServer()
+
+      if (ANIMATING)
+        customer.move(line2Register)
+
+      if (!cashier.idle)
+      {
+        waitQReg.add(this)
+        if (ANIMATING)
+          registerQ.enterQueue()
+        director ! "resume directing"
+    receive {case "resume acting" => }
+        if (ANIMATING)
+          registerQ.leaveQueue(waitQReg)
+      }
+
+
+
+      if (cashier.idle)
+        useCashier(cashier)
+      else
+      {
+        println("You shouldn't be here!")
+        exit()
+      }
+
+      director ! "resume directing"
+    receive {case "resume acting" => }
+
+      releaseServer()
+
+      if (ANIMATING)
+        customer.move(register2Split)
+
+      if (ANIMATING)
+      {
+        if (util.Random.nextDouble() < .25 )
+        {
+          customer.move(split2Lobby)
+          if (lobby.enterLobby(customer))
+          {
+            director.schedule(this,exp(20))
+            director ! "resume directing"
+    receive {case "resume acting" => }
+            lobby.leaveLobby(customer)
+          }
+          else
+            turnedAway += 1
+          customer.move(List(lobby2Split,split2Door))
+        }
+        else
+        {
+          customer.move(split2Door)
+        }
+        customerList.remove(customer)
+      }
+
+      println(director.clock+": "+this+" exiting")
+      director ! "resume directing" //relinquish control
+      exit()
+      }
    }
 
 
 
   var customerList = new ArrayList[Customer]()
-
-      val animator = new Animator("Subway",List(source2Line,line2Register, split2Door, register2Split, split2Lobby, lobby2Split,source,line1,line1Q,register,registerQ,
+  var animator : Animator = null
+  if (ANIMATING)
+      animator = new Animator("Subway",List(source2Line,line2Register, split2Door, register2Split, split2Lobby, lobby2Split,source,line1,line1Q,register,registerQ,
           door,split,lobby),customerList)
 
 
   val actor = SimCustomer(nCustomers)    //schedule the first arrival at time 0
   director.schedule(actor,0)
 
-  director.schedule(project6.Subway.Stopper(),tStop) //schedule the stopper class
+  director.schedule(Stopper(),tStop) //schedule the stopper class
+
+
 
   director.start() //run
 
