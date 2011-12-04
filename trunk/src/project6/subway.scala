@@ -20,14 +20,14 @@ import util.control.Breaks._
 
 object Subway extends App with ProcessInteractionSimulation {
   class Director() extends Model
-
+  
   //the director
   implicit val director = new Director
   
   //rates
-  λ        = 50.0
-  val μLin = IndexedSeq(30.0)
-  val μReg = IndexedSeq(35.0)
+  λ        = 5.0
+  val μLin = IndexedSeq(8.0)
+  val μReg = IndexedSeq(10.0)
   
   //The animation entities
   val source =  new Source()
@@ -119,11 +119,13 @@ object Subway extends App with ProcessInteractionSimulation {
       def net (nc: Double): Double = 5.0 * nc - math.max (wq1, wq2) * nc
       def profit (ne: Int, nc: Double): Double = net(nc) - payroll(ne)
       
-      println("%.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.2f, %.2f, %.2f".format(LQ_LIN, LS_LIN, L_LIN, WQ_LIN, WS_LIN, W_LIN, LQ_REG, LS_REG, L_REG, WQ_REG, WS_REG, W_REG, totalTime, payroll(ne), net(nc), profit(3, nc)))
+      println("%.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.2f, %.2f, %.2f".format(WQ_LIN, WS_LIN, W_LIN, WQ_REG, WS_REG, W_REG, totalTime, payroll(ne), net(nc), profit(ne, nc)))
 
+      
+      
       director ! "resume directing"
       
-      System.exit(0)
+      exit();
   
     }
   }
@@ -214,19 +216,19 @@ object Subway extends App with ProcessInteractionSimulation {
             //if there are people in line, get in line
             if ((for (worker <- lineWorkers) yield !worker.idle).reduceLeft(_&&_)) {
               waitQLin.add(this)
-              println("%10.6f %10s Customer %s is waiting in waitQLin".format(director.clock, "[event]", this))
+              //println("%10.6f %10s Customer %s is waiting in waitQLin".format(director.clock, "[event]", this))
               yieldToDirector()
             }
 
             breakable { 
               for (worker <- lineWorkers) {
             	  if (worker.idle) {
-            	      println("%10.6f %10s Customer %s is using %s".format(director.clock, "[service]", this, worker))
+            	      //println("%10.6f %10s Customer %s is using %s".format(director.clock, "[service]", this, worker))
             		  useLineWorker(worker)
             		  break
             	  }
               }
-              println("stuck")
+              //println("stuck")
             }
             
             yieldToDirector()
@@ -235,27 +237,28 @@ object Subway extends App with ProcessInteractionSimulation {
             //if there are people in line, get in line
             if ((for (cashier <- cashiers) yield !cashier.idle).reduceLeft(_&&_)) {
               waitQReg.add(this)
-              println("%10.6f %10s Customer %s is waiting in waitQReg".format(director.clock, "[event]", this))
+              //println("%10.6f %10s Customer %s is waiting in waitQReg".format(director.clock, "[event]", this))
               yieldToDirector()
             }
 
             breakable { 
               for (cashier <- cashiers) {
             	  if (cashier.idle) {
-            		  println("%10.6f %10s Customer %s is using %s".format(director.clock, "[service]", this, cashier))
+            		  //println("%10.6f %10s Customer %s is using %s".format(director.clock, "[service]", this, cashier))
             		  useCashier(cashier)
             		  break
             	  }
               }
-              println("stuck")
+              //println("stuck")
             }
 
             yieldToDirector()
             releaseCashier()
 
-            println("%10.6f %10s Customer %s is waiting in departing".format(director.clock, "[event]", this))
+            //println("%10.6f %10s Customer %s is waiting in departing".format(director.clock, "[event]", this))
             
              //println(director.clock+": "+this+" exiting")
+            
             director ! "resume directing" //relinquish control
             exit()
         }
