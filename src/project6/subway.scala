@@ -25,7 +25,7 @@ object Subway extends App with ProcessInteractionSimulation {
   implicit val director = new Director
 
   //rates
-  λ      = 10.0
+  λ        = 10.0
   val μLin = IndexedSeq( 7.0, 7.0)
   val μReg = IndexedSeq(14.0)
   
