@@ -35,7 +35,7 @@ abstract class Model extends Actor {
 
     // print a nice message
     Console.BLUE
-//    println("%10s %10s Scheduled %s for t = %s".format(clock, "[action]", actor, actor.actTime))
+    println("%10.6f %10s Scheduled %s for t = %.6f".format(clock, "[action]", actor, actor.actTime))
     Console.RESET
 
   } // def schedule
