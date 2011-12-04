@@ -23,11 +23,11 @@ object Subway extends App with ProcessInteractionSimulation {
 
   //the director
   implicit val director = new Director
-
+  
   //rates
-  λ        = 10.0
-  val μLin = IndexedSeq( 7.0, 7.0)
-  val μReg = IndexedSeq(14.0)
+  λ        = 50.0
+  val μLin = IndexedSeq(30.0)
+  val μReg = IndexedSeq(35.0)
   
   //The animation entities
   val source =  new Source()
@@ -51,7 +51,7 @@ object Subway extends App with ProcessInteractionSimulation {
 
   //simulation variables
   tStart = 0
-  tStop  = 60 * 8
+  tStop  = 8
  
   def log (x: Double): Double = java.lang.Math.log(x)
   
@@ -113,11 +113,13 @@ object Subway extends App with ProcessInteractionSimulation {
       val wq2 = (waitTimesReg / servedCustomersReg)
       val nc  = nCustomers
       
-      def payroll (ne: Int): Double = 7.5 * ne * totalTime
-      def net (nc: Double): Double = 5.0 * nc - wq1 * nc - wq2 * nc
+      val ne  = lineWorkers.length + cashiers.length
+      
+      def payroll (ne: Int): Double = 7.5 * ne * (totalTime + 1)
+      def net (nc: Double): Double = 5.0 * nc - math.max (wq1, wq2) * nc
       def profit (ne: Int, nc: Double): Double = net(nc) - payroll(ne)
       
-      println("%.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.2f, %.2f, %.2f".format(LQ_LIN, LS_LIN, L_LIN, WQ_LIN, WS_LIN, W_LIN, LQ_REG, LS_REG, L_REG, WQ_REG, WS_REG, W_REG, totalTime, payroll(3), net(nc), profit(3, nc)))
+      println("%.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.2f, %.2f, %.2f".format(LQ_LIN, LS_LIN, L_LIN, WQ_LIN, WS_LIN, W_LIN, LQ_REG, LS_REG, L_REG, WQ_REG, WS_REG, W_REG, totalTime, payroll(ne), net(nc), profit(3, nc)))
 
       director ! "resume directing"
       
@@ -219,7 +221,7 @@ object Subway extends App with ProcessInteractionSimulation {
             breakable { 
               for (worker <- lineWorkers) {
             	  if (worker.idle) {
-            	      println("%10.6f %10s Customer %s is using %s".format(director.clock, "[event]", this, worker))
+            	      println("%10.6f %10s Customer %s is using %s".format(director.clock, "[service]", this, worker))
             		  useLineWorker(worker)
             		  break
             	  }
@@ -227,9 +229,7 @@ object Subway extends App with ProcessInteractionSimulation {
               println("stuck")
             }
             
-
             yieldToDirector()
-
             releaseServer()
 
             //if there are people in line, get in line
@@ -242,7 +242,7 @@ object Subway extends App with ProcessInteractionSimulation {
             breakable { 
               for (cashier <- cashiers) {
             	  if (cashier.idle) {
-            		  println("%10.6f %10s Customer %s is using %s".format(director.clock, "[event]", this, cashier))
+            		  println("%10.6f %10s Customer %s is using %s".format(director.clock, "[service]", this, cashier))
             		  useCashier(cashier)
             		  break
             	  }
@@ -251,9 +251,10 @@ object Subway extends App with ProcessInteractionSimulation {
             }
 
             yieldToDirector()
-
             releaseCashier()
 
+            println("%10.6f %10s Customer %s is waiting in departing".format(director.clock, "[event]", this))
+            
              //println(director.clock+": "+this+" exiting")
             director ! "resume directing" //relinquish control
             exit()
