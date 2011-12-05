@@ -120,7 +120,7 @@ object Subway extends App with ProcessInteractionSimulation {
       def profit (ne: Int, nc: Double): Double = net(nc) - payroll(ne)
       
       // println("%.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.2f, %.2f, %.2f".format(WQ_LIN, WS_LIN, W_LIN, WQ_REG, WS_REG, W_REG, totalTime, payroll(ne), net(nc), profit(ne, nc)))
-      println("%d, %d, %.2f, %.2f".format(ne, nc, payroll(ne) , profit(ne, nc)))
+      println("%d, %d, $d, %.2f, %.2f".format(lineWorkers.length, cashiers.length, nc, payroll(ne) , profit(ne, nc)))
       
       director ! "resume directing"
       
