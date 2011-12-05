@@ -18,16 +18,15 @@ import util.control.Breaks._
  * To change this template use File | Settings | File Templates.
  */
 
-object Subway extends App with ProcessInteractionSimulation {
+object Subway extends ProcessInteractionSimulation {
+ 
   class Director() extends Model
   
   //the director
   implicit val director = new Director
-  
-  //rates
-  λ        = 5.0
-  val μLin = IndexedSeq(8.0)
-  val μReg = IndexedSeq(10.0)
+	
+  var μLin = IndexedSeq.empty[Double]
+  var μReg = IndexedSeq.empty[Double]
   
   //The animation entities
   val source =  new Source()
@@ -71,6 +70,11 @@ object Subway extends App with ProcessInteractionSimulation {
   var servedCustomersReg = 0
   
   
+
+  var lineWorkers = for (i <- 0 until μLin.length) yield Server(μLin(i), waitQLin, i, line1)
+  var cashiers = for (i <- 0 until μReg.length) yield Cashier(μReg(i), waitQReg, i, register)
+  
+  
   //the cashier
   case class Server(serviceRate : Double, waitQ : ArrayList[SimCustomer], val serverNo : Int, val service : Service) extends Entity {
     var idle = true
@@ -81,9 +85,6 @@ object Subway extends App with ProcessInteractionSimulation {
     var idle = true
     override def toString = "Cashier(%d)".format(serverNo)
   }
-
-  var lineWorkers = for (i <- 0 until μLin.length) yield Server(μLin(i), waitQLin, i, line1)
-  var cashiers = for (i <- 0 until μReg.length) yield Cashier(μReg(i), waitQReg, i, register)
   
   //the stopping "event"/process which kills the system
   case class Stopper() extends SimActor {
@@ -114,13 +115,15 @@ object Subway extends App with ProcessInteractionSimulation {
       val nc  = nCustomers
       
       val ne  = lineWorkers.length + cashiers.length
+      val nel = μLin.length
+      val ner = μReg.length
       
       def payroll (ne: Int): Double = 7.5 * ne * (totalTime + 1)
       def net (nc: Double): Double = 5.0 * nc - math.max (wq1, wq2) * nc
       def profit (ne: Int, nc: Double): Double = net(nc) - payroll(ne)
       
       // println("%.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.2f, %.2f, %.2f".format(WQ_LIN, WS_LIN, W_LIN, WQ_REG, WS_REG, W_REG, totalTime, payroll(ne), net(nc), profit(ne, nc)))
-      println("%d, %d, %.2f, %.2f".format(ne, nc, payroll(ne) , profit(ne, nc)))
+      println("%d, %d, %d, %.2f, %.2f".format(nel, ner, nc, payroll(ne) , profit(ne, nc)))
       
       director ! "resume directing"
       
@@ -128,7 +131,7 @@ object Subway extends App with ProcessInteractionSimulation {
   
     }
   }
-
+	
   //the Customer
   case class SimCustomer(customerNumber : Int) extends SimActor {
     
@@ -266,14 +269,26 @@ object Subway extends App with ProcessInteractionSimulation {
             exit()
         }
    }
+  
+  def main (args: Array[String]) {
+    
+	  
+	  //rates
+	  λ        = 5.0
+	    
+	  val actor = SimCustomer(nCustomers)    //schedule the first arrival at time 0
+	  val nel   = Integer.parseInt(args(0))
+	  val ner   = Integer.parseInt(args(1))
+		
+	  μLin = IndexedSeq.fill[Double](nel)(8.0)
+	  μReg = IndexedSeq.fill[Double](nel)(8.0)
+	  
 
-
-
-  val actor = SimCustomer(nCustomers)    //schedule the first arrival at time 0
-  director.schedule(actor,0)
-
-  director.schedule(Stopper(),tStop) //schedule the stopper class
-
-  director.start() //run
+	director.schedule(actor,0)
+	director.schedule(Stopper(),tStop) //schedule the stopper class
+	director.start() //run
+ 
+	  
+  }
 
  }
