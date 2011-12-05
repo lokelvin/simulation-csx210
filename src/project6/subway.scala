@@ -51,7 +51,7 @@ object Subway extends App with ProcessInteractionSimulation {
 
   //simulation variables
   tStart = 0
-  tStop  = 8
+  tStop  = 32
  
   def log (x: Double): Double = java.lang.Math.log(x)
   
@@ -125,7 +125,7 @@ object Subway extends App with ProcessInteractionSimulation {
       
       director ! "resume directing"
       
-      exit();
+      System.exit(0);
   
     }
   }
@@ -212,7 +212,7 @@ object Subway extends App with ProcessInteractionSimulation {
             nCustomers +=  1 //increment the number of customers through the system
             
             director.schedule(SimCustomer(nCustomers), exp(1.0/λ)) //schedule another arrival
-
+            
             //if there are people in line, get in line
             if ((for (worker <- lineWorkers) yield !worker.idle).reduceLeft(_&&_)) {
               waitQLin.add(this)
@@ -224,7 +224,8 @@ object Subway extends App with ProcessInteractionSimulation {
               for (worker <- lineWorkers) {
             	  if (worker.idle) {
             	      //println("%10.6f %10s Customer %s is using %s".format(director.clock, "[service]", this, worker))
-            		  useLineWorker(worker)
+            		  
+            	      useLineWorker(worker)
             		  break
             	  }
               }
@@ -233,9 +234,11 @@ object Subway extends App with ProcessInteractionSimulation {
             
             yieldToDirector()
             releaseServer()
-
+            
+            this.arrivalTime = director.clock
             //if there are people in line, get in line
             if ((for (cashier <- cashiers) yield !cashier.idle).reduceLeft(_&&_)) {
+
               waitQReg.add(this)
               //println("%10.6f %10s Customer %s is waiting in waitQReg".format(director.clock, "[event]", this))
               yieldToDirector()
@@ -245,7 +248,8 @@ object Subway extends App with ProcessInteractionSimulation {
               for (cashier <- cashiers) {
             	  if (cashier.idle) {
             		  //println("%10.6f %10s Customer %s is using %s".format(director.clock, "[service]", this, cashier))
-            		  useCashier(cashier)
+            		  
+            	      useCashier(cashier)
             		  break
             	  }
               }
