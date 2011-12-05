@@ -51,7 +51,7 @@ object Subway extends App with ProcessInteractionSimulation {
 
   //simulation variables
   tStart = 0
-  tStop  = 32
+  tStop  = 1000
  
   def log (x: Double): Double = java.lang.Math.log(x)
   
@@ -119,9 +119,8 @@ object Subway extends App with ProcessInteractionSimulation {
       def net (nc: Double): Double = 5.0 * nc - math.max (wq1, wq2) * nc
       def profit (ne: Int, nc: Double): Double = net(nc) - payroll(ne)
       
-      println("%.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.2f, %.2f, %.2f".format(WQ_LIN, WS_LIN, W_LIN, WQ_REG, WS_REG, W_REG, totalTime, payroll(ne), net(nc), profit(ne, nc)))
-
-      
+      // println("%.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.2f, %.2f, %.2f".format(WQ_LIN, WS_LIN, W_LIN, WQ_REG, WS_REG, W_REG, totalTime, payroll(ne), net(nc), profit(ne, nc)))
+      println("%d, %d, %.2f, %.2f".format(ne, nc, payroll(ne) , profit(ne, nc)))
       
       director ! "resume directing"
       
